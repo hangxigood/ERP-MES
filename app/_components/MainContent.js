@@ -2,12 +2,21 @@
 
 import React, { useState } from 'react';
 
+// Function to get the current date in YYYY-MM-DD format
+const getCurrentDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const MainContent = () => {
   const [formData, setFormData] = useState({
     name: 'OXY BATCH RECORD',
     documentNumber: 'DO1862',
     revision: '4',
-    date: '', // Set the default date here
+    date: getCurrentDate(),
     family: '​​Oxy ETCO2 (2.0)​',
     partPrefix: '​​SMI2/​',
     partNumber: '​​OM-2125-14SLM​',
@@ -91,6 +100,7 @@ const MainContent = () => {
             type="date"
             name="date"
             value={formData.date}
+            readOnly
             onChange={handleChange}
             className="border rounded px-2 py-1 text-black"
           />
