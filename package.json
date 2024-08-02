@@ -9,12 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "mysql2": "^3.11.0",
     "next": "14.2.5",
+    "next-auth": "^4.24.7",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
+    "@types/node": "22.0.2",
+    "@types/react": "18.3.3",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "postcss": "^8",
