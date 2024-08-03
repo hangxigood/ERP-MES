@@ -50,6 +50,11 @@ const nextAuthOptions = {
         jwt: true,
     },
     secret: process.env.NEXTAUTH_SECRET,
+    
 };
+
+if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_SECRET) {
+    throw new Error('NEXTAUTH_SECRET is not set in production environment');
+  }
 
 export default nextAuthOptions;
