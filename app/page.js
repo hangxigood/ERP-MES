@@ -1,8 +1,17 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const Home = () => {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push('/login');
+  }, [router]);
+
   return (
-    <p>Happy Happy Happy...</p>
+    <p>Redirecting to login...</p>
   );
 };
 
