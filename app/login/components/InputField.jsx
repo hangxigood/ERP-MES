@@ -8,7 +8,7 @@ function InputField({ label, id, type, required }) {
         type={type}
         id={id}
         required={required}
-        className="w-full rounded border border-solid border-neutral-700 h-[43px]"
+        className="w-full rounded border border-solid border-neutral-700 h-[43px] px-2"
       />
     </div>
   );

@@ -1,23 +1,28 @@
-import { getConnection } from '../../_utils/db';
+import { NextResponse } from 'next/server';
+import { prisma } from '../../../lib/prisma';
 
-export async function POST(req) {
-  const { name, documentNumber, revision, date, family, partPrefix, partNumber, description, lotNumber, manufactureDate } = await req.json();
-
+export async function POST(request) { 
   try {
-    const connection = await getConnection();
+    const body = await request.json();
 
-    const insertQuery = `
-      INSERT INTO batch_records (name, document_number, revision, date, family, part_prefix, part_number, description, lot_number, manufacture_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    const newBatchRecord = await prisma.batchRecordHeader.create({
+      data: {
+        name: body.name,
+        documentNumber: body.documentNumber,
+        revision: body.revision,
+        date: new Date(body.date),
+        family: body.family,
+        partPrefix: body.partPrefix,
+        partNumber: body.partNumber,
+        description: body.description,
+        lotNumber: body.lotNumber,
+        manufactureDate: body.manufactureDate,
+      },
+    });
 
-    const values = [name, documentNumber, revision, date, family, partPrefix, partNumber, description, lotNumber, manufactureDate];
-
-    await connection.execute(insertQuery, values);
-    await connection.end();
-    return new Response(JSON.stringify({ message: 'Form data saved successfully' }), { status: 200 });
+    return NextResponse.json({ message: 'Batch record created successfully', data: newBatchRecord }, { status: 201 });
   } catch (error) {
-    console.error('Error saving form data:', error);
-    return new Response(JSON.stringify({ message: 'Error saving form data' }), { status: 500 });
+    console.error('Error creating batch record:', error);
+    return NextResponse.json({ message: 'Error creating batch record' }, { status: 500 });
   }
 }

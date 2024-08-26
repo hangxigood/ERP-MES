@@ -2,20 +2,9 @@
 
 import React from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { useEffect } from 'react';
-import { useRouter } from "next/navigation";
 
 const Header = () => {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push("/login"); // Redirect to login
-    }
-  }, [status]);
-
-
+  const { data: session } = useSession();
 
   return (
     <header className="flex gap-5 justify-between px-16 py-8 w-full text-2xl font-bold text-white bg-neutral-700 max-md:flex-wrap max-md:px-5 max-md:max-w-full">

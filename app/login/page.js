@@ -3,33 +3,40 @@
 import React, { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";  // Changed from next/router
-import InputField from "./_components/InputField";
-import Button from "./_components/Button";
-import Link from "./_components/Link";
+import InputField from "./components/InputField";
+import Button from "./components/Button";
+import Link from "./components/Link";
 
 function LoginPage() {
     const [error, setError] = useState("");
     const router = useRouter();
-    const { data: session, status } = useSession();
+    // useSession is used to check the session on the client side for a client component.
+    const { status } = useSession();
 
     // Redirect if already logged in
     useEffect(() => {
         if (status === "authenticated") {
-            router.push("/header");
+            router.push("/records/header");
         }
     }, [status, router]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        /**
+         * 1. signIn is used to sign in the user with the credentials.
+         * 2. The credentials are passed to signIn, which is the recommended way to configure the authentication.
+         * 3. The redirect is set to false to prevent the user from being redirected to the login page.
+         * 4. The email and password are passed to signIn, which is the recommended way to configure the authentication.    
+         */
         const result = await signIn('credentials', {
             redirect: false,
-            username: e.target.username.value,
+            email: e.target.email.value,
             password: e.target.password.value,
         });
         if (result?.error) {
-            setError("Invalid username or password");
+            setError("Invalid email or password");
         } else {
-            router.push("/header");
+            router.push("/records/header");
         }
     };
     
@@ -50,7 +57,7 @@ function LoginPage() {
                 </h1>
                 {error && <p className="text-red-500 text-center mb-4">{error}</p>}
                 <form onSubmit={handleSubmit}>
-                    <InputField label="User Name" id="username" type="text" required />
+                    <InputField label="Email" id="email" type="email" required />
                     <InputField label="Password" id="password" type="password" required />
                     <Button text="LOGIN" type="submit" />
                 </form>
