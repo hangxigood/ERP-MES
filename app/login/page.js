@@ -7,6 +7,7 @@ import InputField from "../../components/ui/InputField";
 import Button from "../../components/ui/Button";
 import Link from "../../components/ui/Link";
 import Image from 'next/image';
+import logo from "../../public/images/SMI_logo.png";
 
 function LoginPage() {
     const [error, setError] = useState("");
@@ -17,7 +18,7 @@ function LoginPage() {
     // Redirect if already logged in
     useEffect(() => {
         if (status === "authenticated") {
-            router.push("/records/header");
+            router.push("/");
         }
     }, [status, router]);
 
@@ -36,8 +37,6 @@ function LoginPage() {
         });
         if (result?.error) {
             setError("Invalid email or password");
-        } else {
-            router.push("/records/header");
         }
     };
     
@@ -53,7 +52,7 @@ function LoginPage() {
         <div className="flex flex-col items-center text-lg text-black py-36 bg-teal-300">
             <div className="flex flex-col px-14 pt-14 pb-9 bg-white rounded-3xl w-[550px]">
                 <Image
-                    src="/SMI_logo.png" // Adjust this path to match your logo file name
+                    src={logo}
                     alt="Batch Record System Logo"
                     width={302}
                     height={89} // Adjust this based on your logo's aspect ratio

@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 const SectionItem = ({ icon, text, isActive }) => {
   const baseClasses = "flex gap-1.5 px-3 py-1 mt-1 rounded";
@@ -6,7 +7,12 @@ const SectionItem = ({ icon, text, isActive }) => {
 
   return (
     <div className={`${baseClasses} ${activeClasses}`}>
-      <img loading="lazy" src={icon} alt="" className="shrink-0 my-auto w-2.5 aspect-[0.83]" />
+      <Image
+        src={icon}
+        alt="Option icon"
+        width={11}
+        height={12}
+      />
       <div className="flex-1">{text}</div>
     </div>
   );
