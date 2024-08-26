@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";  // Changed from next/router
-import InputField from "./components/InputField";
-import Button from "./components/Button";
-import Link from "./components/Link";
+import InputField from "../../components/ui/InputField";
+import Button from "../../components/ui/Button";
+import Link from "../../components/ui/Link";
 
 function LoginPage() {
     const [error, setError] = useState("");
