@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";  // Changed from next/router
 import InputField from "../../components/ui/InputField";
 import Button from "../../components/ui/Button";
 import Link from "../../components/ui/Link";
+import Image from 'next/image';
 
 function LoginPage() {
     const [error, setError] = useState("");
@@ -51,7 +52,13 @@ function LoginPage() {
     return (
         <div className="flex flex-col items-center text-lg text-black py-36 bg-teal-300">
             <div className="flex flex-col px-14 pt-14 pb-9 bg-white rounded-3xl w-[550px]">
-                <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/513de61559510b87f84a70534f7dd3f9245b2e3b6ba8e0e0fd12a7d1329ea0d9?apiKey=2b08548dcb384abfa0a328fedffac42b&&apiKey=2b08548dcb384abfa0a328fedffac42b" alt="Batch Record System Logo" className="object-contain self-center max-w-full aspect-[3.39] w-[302px]" />
+                <Image
+                    src="/SMI_logo.png" // Adjust this path to match your logo file name
+                    alt="Batch Record System Logo"
+                    width={302}
+                    height={89} // Adjust this based on your logo's aspect ratio
+                    className="object-contain self-center"
+                />
                 <h1 className="self-center mb-5 text-1xl text-gray-500">
                     BATCH RECORD SYSTEM
                 </h1>
