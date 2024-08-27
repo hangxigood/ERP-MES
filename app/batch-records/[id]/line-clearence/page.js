@@ -1,14 +1,12 @@
 import React from 'react';
-import { useRouter } from 'next/router';
 import { getServerSession } from "next-auth/next";
-import authOptions from "../../lib/authOptions";
-import Header from "../../components/Header";
+import authOptions from "../../../../lib/authOptions";
+import Header from "../../../../components/Header";
 
-export default async function BatchRecordDetail() {
+
+export default async function BatchRecordDetail( {params} ) {
   const session = await getServerSession(authOptions);
-  const router = useRouter();
-  const { id } = router.query;
-
+  const { id } = params;
   // Fetch batch record details based on id
   const fetchBatchRecord = async () => {
     try {
