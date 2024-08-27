@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
 
-export async function POST(request) { 
+export async function createBatchRecord(request) {
   try {
     const body = await request.json();
 
-    const newBatchRecord = await prisma.batchRecordHeader.create({
+    const newBatchRecord = await prisma.batchRecord.create({
       data: {
         name: body.name,
         documentNumber: body.documentNumber,
@@ -17,6 +17,8 @@ export async function POST(request) {
         description: body.description,
         lotNumber: body.lotNumber,
         manufactureDate: body.manufactureDate,
+        createdBy: { connect: { id: body.createdById } },
+        updatedBy: { connect: { id: body.updatedById } },
       },
     });
 

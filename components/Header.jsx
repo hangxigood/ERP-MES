@@ -3,12 +3,12 @@
 import React from 'react';
 import { useSession, signOut } from 'next-auth/react';
 
-const Header = () => {
+const Header = ({ title }) => {
   const { data: session } = useSession();
 
   return (
     <header className="flex gap-5 justify-between px-16 py-8 w-full text-2xl font-bold text-white bg-neutral-700 max-md:flex-wrap max-md:px-5 max-md:max-w-full">
-      <div className="my-auto">BATCH RECORD SYSTEM</div>
+      <div className="my-auto">{title}</div>
       {session && (
         <div className="flex items-center gap-5">
           <span>{session.user.name}</span>

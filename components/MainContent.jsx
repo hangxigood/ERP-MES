@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 const getCurrentDate = () => {
   const today = new Date();
   return today.toISOString().split('T')[0]; // Returns YYYY-MM-DD
 };
 
-const MainContent = () => {
+const MainContent = ({buttonText}) => {
+  const { data: session } = useSession();
+
   const [formData, setFormData] = useState({
     name: 'OXY BATCH RECORD',
     documentNumber: 'DO1862',
@@ -21,6 +24,8 @@ const MainContent = () => {
     manufactureDate: getCurrentDate(),
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -31,13 +36,29 @@ const MainContent = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
+
+    if (!session || !session.user || !session.user.id) {
+      alert('You must be logged in to create a batch record.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
-      const response = await fetch('/api/submitForm', {
+      const submissionData = {
+        ...formData,
+        createdById: session.user.id,
+        updatedById: session.user.id,
+      };
+
+      const response = await fetch('/api/batchRecords?action=createBatchRecord', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       });
     
       const result = await response.json();
@@ -50,6 +71,8 @@ const MainContent = () => {
     } catch (error) {
       console.error('Error creating batch record:', error);
       alert('Error creating batch record');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -83,8 +106,12 @@ const MainContent = () => {
           </div>
         ))}
         <div className="flex justify-end">
-          <button type="submit" className="px-16 py-4 bg-teal-300 rounded">
-            NEXT - Line Clearance
+          <button 
+            type="submit" 
+            className={`px-16 py-4 rounded ${isSubmitting ? 'bg-gray-300 cursor-not-allowed' : 'bg-teal-300'}`}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Submitting...' : buttonText}
           </button>
         </div>
       </form>

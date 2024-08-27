@@ -1,9 +1,9 @@
 import React from 'react';
 import { getServerSession } from "next-auth/next";
-import authOptions from "../../../lib/authOptions";
-import Header from '../../../components/Header';
-import Sidebar from '../../../components/Sidebar';
-import MainContent from '../../../components/MainContent';
+import authOptions from "../../lib/authOptions";
+import Header from "../../components/Header";
+import MainContent from "../../components/MainContent";
+
 
 export default async function BatchRecordSystem () {
 
@@ -16,11 +16,10 @@ export default async function BatchRecordSystem () {
 
   return (
     <div className="flex flex-col bg-white">
-      <Header />
+      <Header title="NEW BATCH RECORD" />
       <div className="self-center w-full">
         <div className="flex gap-6">
-          <Sidebar />
-          <MainContent />
+          <MainContent buttonText="Create" />
         </div>
       </div>
     </div>
