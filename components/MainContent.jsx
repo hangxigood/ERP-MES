@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
 const getCurrentDate = () => {
@@ -9,8 +10,10 @@ const getCurrentDate = () => {
 };
 
 const MainContent = ({buttonText}) => {
-  const { data: session } = useSession();
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  // default form data
   const [formData, setFormData] = useState({
     name: 'OXY BATCH RECORD',
     documentNumber: 'DO1862',
@@ -23,8 +26,6 @@ const MainContent = ({buttonText}) => {
     lotNumber: '',
     manufactureDate: getCurrentDate(),
   });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,11 +40,6 @@ const MainContent = ({buttonText}) => {
     
     if (isSubmitting) return;
 
-    if (!session || !session.user || !session.user.id) {
-      alert('You must be logged in to create a batch record.');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -53,7 +49,7 @@ const MainContent = ({buttonText}) => {
         updatedById: session.user.id,
       };
 
-      const response = await fetch('/api/batchRecords?action=createBatchRecord', {
+      const response = await fetch('/api/batchRecord', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,8 +59,7 @@ const MainContent = ({buttonText}) => {
     
       const result = await response.json();
       if (response.ok) {
-        alert('Batch record created successfully!');
-        // Optionally reset form or redirect user
+        router.push(`/batchRecord/${result.id}`);
       } else {
         alert('Error creating batch record: ' + result.message);
       }

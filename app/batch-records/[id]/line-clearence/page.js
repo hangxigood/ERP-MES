@@ -15,13 +15,12 @@ async function fetchLineClearanceData(id) {
 
   try {
     const session = await getServerSession(authOptions);
-    console.log("SessionToken:", session.user.accessToken)
+    console.log("Session for page:", session)
    
-    
-
     // Get the session token directly from the cookies
     const cookieStore = cookies()
     const sessionToken = cookieStore.get('next-auth.session-token')?.value
+    
 
     if (!sessionToken) {
       throw new Error('Session token not found. Please log in again.')
@@ -29,9 +28,9 @@ async function fetchLineClearanceData(id) {
 
     const response = await fetch(url.toString(), {
       method: 'GET',
-      headers: {
-        'Cookie': `next-auth.session-token=${sessionToken}`,
-      },
+      // headers: {
+      //   'Cookie': `next-auth.session-token=${sessionToken}`,
+      // },
     });
     console.log("Response status:", response.status);
     console.log("Response headers:", Object.fromEntries(response.headers));

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import {prisma} from '../../../lib/prisma';
+import {prisma} from '../../../../lib/prisma';
 
 /**
  * POST /api/batchRecords?batchRecordId=1&formType=lineClearance

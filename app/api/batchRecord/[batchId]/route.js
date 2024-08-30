@@ -1,4 +1,3 @@
-import { getToken } from 'next-auth/jwt';
 import { GET as GET_OLD } from './get';
 import { PUT as PUT_OLD } from './put';
 import { POST as POST_OLD } from './post';
@@ -8,6 +7,7 @@ const secret = process.env.NEXTAUTH_SECRET
 
 async function checkToken(req) {
   const token = await getToken({ req, secret});
+  console.log("Token:", token)
   if (!token) {
     return new Response('Unauthorized', { status: 401 });
   }

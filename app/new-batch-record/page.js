@@ -4,7 +4,6 @@ import authOptions from "../../lib/authOptions";
 import Header from "../../components/Header";
 import MainContent from "../../components/MainContent";
 
-
 export default async function BatchRecordSystem () {
 
   /**
@@ -13,6 +12,13 @@ export default async function BatchRecordSystem () {
    * 3. we may need to use session information like role in the future
    */
   const session = await getServerSession(authOptions);
+
+  // Check if user is authenticated and has the correct role
+  if (session.user.role !== 'ADMIN' && session.user.role !== 'LABELING') {
+     // Server-side components can't use browser APIs like alert
+     // Instead, we'll return an error message that can be displayed
+     return <div className="text-red-500 font-bold text-center mt-4">Access Denied: You are not authorized to access this page</div>;
+  }
 
   return (
     <div className="flex flex-col bg-white">
