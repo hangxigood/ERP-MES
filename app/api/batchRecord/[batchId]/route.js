@@ -1,43 +1,70 @@
-import { GET as GET_OLD } from './get';
-import { PUT as PUT_OLD } from './put';
-import { POST as POST_OLD } from './post';
-import { createBatchRecord } from './createBatchRecord';
+import { prisma } from '../../../../lib/prisma';
+import { getToken } from 'next-auth/jwt';
+import { NextResponse } from 'next/server';
 
-const secret = process.env.NEXTAUTH_SECRET
-
-async function checkToken(req) {
-  const token = await getToken({ req, secret});
-  console.log("Token:", token)
+export async function GET(request, { params }) {
+  // Auth check
+  const token = await getToken({ req: request });
   if (!token) {
-    return new Response('Unauthorized', { status: 401 });
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const batchId = parseInt(params.batchId);
+    const batchRecord = await prisma.batchRecord.findUnique({
+      where: { id: batchId },
+    });
+
+    if (!batchRecord) {
+      return NextResponse.json({ message: 'Batch record not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(batchRecord);
+  } catch (error) {
+    console.error('Error fetching batch record:', error);
+    return NextResponse.json({ message: 'Error fetching batch record', error: error.message }, { status: 500 });
   }
 }
 
-export async function GET(request) {
-  const tokenCheck = await checkToken(request);
-  if (tokenCheck) return tokenCheck;
-  return GET_OLD(request);
-}
-
-export async function PUT(request) {
-  const tokenCheck = await checkToken(request);
-  if (tokenCheck) return tokenCheck;
-  return PUT_OLD(request);
-}
-
-export async function POST(request) {
-  const tokenCheck = await checkToken(request);
-  if (tokenCheck) return tokenCheck;
-
-  // create batch record
-  const { searchParams } = new URL(request.url);
-  const action = searchParams.get('action');
-
-  // create batch record
-  if (action === 'createBatchRecord') {
-    return createBatchRecord(request);
+export async function PUT(request, { params }) {
+  // Auth check
+  const token = await getToken({ req: request });
+  if (!token) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  // Default to the existing POST handler
-  return POST_OLD(request);
+  try {
+    const batchId = parseInt(params.batchId);
+    const updatedData = await request.json();
+
+    // Fields to update
+    const allowedFields = [
+      'name', 'documentNumber', 'revision', 'date', 'family',
+      'partPrefix', 'partNumber', 'description', 'lotNumber',
+      'manufactureDate', 'additionalData'
+    ];
+
+    // Filter out unnecessary fields and prepare the data for update
+    const filteredData = Object.keys(updatedData)
+      .filter(key => allowedFields.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = updatedData[key];
+        return obj;
+      }, {});
+
+    const updatedBatchRecord = await prisma.batchRecord.update({
+      where: { id: batchId },
+      data: {
+        ...filteredData,
+        date: new Date(updatedData.date),
+        updatedAt: new Date(),
+        updatedBy: { connect: { id: token.sub } }
+      },
+    });
+
+    return NextResponse.json(updatedBatchRecord);
+  } catch (error) {
+    console.error('Error updating batch record:', error);
+    return NextResponse.json({ message: 'Error updating batch record', error: error.message }, { status: 500 });
+  }
 }
