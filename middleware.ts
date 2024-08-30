@@ -1,3 +1,4 @@
+// Middleware to protect routes
 import { withAuth } from "next-auth/middleware"
 
 // It checks if a user is authenticated (has a valid token) 
@@ -10,9 +11,10 @@ export default withAuth(
     callbacks: {
       // If the user has a valid token, allow access to the specified routes.
       authorized: ({ token }) => !!token
+      // authorized: ({ token }) => true
     },
   }
 )
 
-// Protect all routes except /login
-export const config = { matcher: ["/((?!login).*)"] }
+// Protect all routes except /login, /public, and /api
+export const config = { matcher: ["/((?!login|public|api).*)"] }
