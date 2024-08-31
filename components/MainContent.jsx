@@ -60,7 +60,7 @@ const MainContent = ({ initialData, mode = 'create', batchId = null }) => {
         submissionData.createdById = session.user.id;
       }
 
-      const url = mode === 'create' ? '/api/batchRecord' : `/api/batchRecord/${batchId}`;
+      const url = mode === 'create' ? '/api/batch-record' : `/api/batch-record/${batchId}`;
       const method = mode === 'create' ? 'POST' : 'PUT';
 
       const response = await fetch(url, {
@@ -71,7 +71,7 @@ const MainContent = ({ initialData, mode = 'create', batchId = null }) => {
 
       if (response.ok) {
         const result = await response.json();
-        router.push(`/batchRecord/${result.id}`);
+        router.push(`/batch-record/${result.id}`);
       } else {
         const errorData = await response.json();
         alert('Error: ' + errorData.message);

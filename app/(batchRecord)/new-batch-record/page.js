@@ -1,7 +1,9 @@
+'use client'
+
 import React from 'react';
 import { useSession } from "next-auth/react";
-import Header from "../../components/Header";
-import MainContent from "../../components/MainContent";
+import Header from "../../../components/Header";
+import MainContent from "../../../components/MainContent";
 
 export default function BatchRecordSystem() {
   const { data: session, status } = useSession();

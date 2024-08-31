@@ -1,8 +1,8 @@
 import React from 'react';
-import Header from "../../../../components/Header";
-import LineClearanceForm from "../../../../components/LineClearanceForm";
+import Header from "../../../../../components/Header";
+import LineClearanceForm from "../../../../../components/LineClearanceForm";
 import { getServerSession } from "next-auth/next";
-import authOptions from "../../../../lib/authOptions";
+import authOptions from "../../../../../lib/authOptions";
 import { cookies } from 'next/headers'
 
 async function fetchLineClearanceData(id) {

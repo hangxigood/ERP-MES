@@ -34,7 +34,9 @@ const Home = () => {
       <a href="/new-batch-record" className="hover:underline">
         <SectionItem icon={option} text="New Batch Record"/>
       </a>
-      <SectionItem icon={option} text="Open Existing Batch Record"/>
+      <a href="/batch-record" className="hover:underline">
+        <SectionItem icon={option} text="Open Existing Batch Record"/>
+      </a>
       <SectionItem icon={option} text="User Management"/>
 
       <button 

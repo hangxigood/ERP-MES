@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation';
-import Header from "../../../components/Header";
-import MainContent from "../../../components/MainContent";
+import Header from "../../../../components/Header";
+import MainContent from "../../../../components/MainContent";
+import Sidebar from "../../../../components/Sidebar";
 
 export default function EditBatchRecordPage({ params }) {
   const [batchRecord, setBatchRecord] = useState(null);
@@ -15,7 +16,7 @@ export default function EditBatchRecordPage({ params }) {
   useEffect(() => {
     const fetchBatchRecord = async () => {
       try {
-        const response = await fetch(`/api/batchRecord/${params.batchId}`);
+        const response = await fetch(`/api/batch-record/${params.batchId}`);
         if (response.ok) {
           const data = await response.json();
           setBatchRecord(data);
@@ -49,9 +50,12 @@ export default function EditBatchRecordPage({ params }) {
   return (
     <div className="flex flex-col bg-white">
       <Header title="EDIT BATCH RECORD" />
-      <div className="self-center w-full">
-        <div className="flex gap-6">
-          <MainContent mode="edit" initialData={batchRecord} batchId={params.batchId} />
+      <div className="flex">
+        <Sidebar />
+        <div className="flex-grow">
+          <div className="flex gap-6">
+            <MainContent mode="edit" initialData={batchRecord} batchId={params.batchId} />
+          </div>
         </div>
       </div>
     </div>
