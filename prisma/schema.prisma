@@ -47,7 +47,7 @@ enum Role {
 // we can use additionalData to store the unexpected fields
 
 
-// batch record
+// batch record(header)
 model BatchRecord {
   id               Int      @id @default(autoincrement())
   version          Int      @default(1)

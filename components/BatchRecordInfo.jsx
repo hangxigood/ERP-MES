@@ -10,7 +10,6 @@ function BatchRecordInfo({
   date,
   dateOfManufacture,
   description,
-  productImageSrc
 }) {
   return (
     <section className="overflow-hidden self-stretch px-9 py-8 w-full bg-white rounded border-2 border-gray-500 border-solid max-md:px-5 max-md:max-w-full">
@@ -35,12 +34,6 @@ function BatchRecordInfo({
         <div className="flex flex-col ml-5 w-[46%] max-md:ml-0 max-md:w-full">
           <div className="flex gap-10 self-stretch my-auto text-base text-black max-md:mt-10">
             <div>Description: {description}</div>
-            <img
-              loading="lazy"
-              src={productImageSrc}
-              alt="Product image"
-              className="object-contain shrink-0 aspect-[1.18] w-[86px]"
-            />
           </div>
         </div>
       </div>

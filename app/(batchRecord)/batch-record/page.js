@@ -1,20 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSession } from "next-auth/react";
 import Header from "../../../components/Header";
 import Link from 'next/link';
 
 export default function BatchRecordList() {
   const [batchRecords, setBatchRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchBatchRecords();
-    }
-  }, [status]);
+    fetchBatchRecords();
+  }, []);
 
   const fetchBatchRecords = async () => {
     try {
@@ -32,12 +28,8 @@ export default function BatchRecordList() {
     }
   };
 
-  if (status === "loading" || isLoading) {
+  if (isLoading) {
     return <div>Loading...</div>;
-  }
-
-  if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'LABELING')) {
-    return <div className="text-red-500 font-bold text-center mt-4">Access Denied: You are not authorized to access this page</div>;
   }
 
   return (

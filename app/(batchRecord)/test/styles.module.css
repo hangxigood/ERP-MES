@@ -1,0 +1,42 @@
+.excelSheet {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr); /* 12 columns */
+    border: 1px solid #ccc;
+    font-family: Arial, sans-serif;
+    max-width: 1200px;
+    margin: 20px auto;
+  }
+  
+  .headerRow, .dataRow {
+    display: contents;
+  }
+  
+  .cell {
+    border: 1px solid #ccc;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+  }
+  
+  .headerCell {
+    font-weight: bold;
+  }
+  
+  .input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: inherit;
+  }
+  
+  .input:focus {
+    outline: none;
+    background-color: #e6f3ff;
+  }
+
+  .checkbox {
+    width: 20px;
+    height: 20px;
+  }
