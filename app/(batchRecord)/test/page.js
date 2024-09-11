@@ -1,78 +1,97 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import styles from './styles.module.css';
+import React, { useState } from 'react';
+import {
+  DataSheetGrid,
+  intColumn,
+  textColumn,
+  keyColumn,
+} from 'react-datasheet-grid'
 
-const templateData = [
-    {section: "Header", name: "Part", order: 1, height: 2, row_span: 2, col_span: 1, col: 1},
-    {section: "Header", name: "Description", order: 2, height: 2, row_span: 2, col_span: 1, col: 2},
-    {section: "Header", name: "Quantity Required", order: 3, height: 2, row_span: 2, col_span: 1, col: 3},
-    {section: "Header", name: "Component Verified to be Correct", order: 4, height: 1, row_span: 1, col_span: 2, col: 4},
-    {section: "Header", name: "Sign", order: 5, height: 1, row_span: 1, col_span: 1, row: 2, col: 4},
-    {section: "Header", name: "Date", order: 6, height: 1, row_span: 1, col_span: 1, row: 2, col: 5},
-    {section: "Header", name: "Lot Used", order: 7, height: 2, row_span: 2, col_span: 1, col: 6},
-    {section: "Header", name: "Lot Qty.", order: 8, height: 2, row_span: 2, col_span: 1, col: 7},
-    {section: "Header", name: "Scrap Qty.", order: 9, height: 2, row_span: 2, col_span: 1, col: 8},
-    {section: "Header", name: "Documented By:", order: 10, height: 2, row_span: 2, col_span: 1, col: 9},
-    {section: "Header", name: "Date:", order: 11, height: 2, row_span: 2, col_span: 1, col: 10},
-    {section: "Data", field_name: "part", field_type: "text", required: true, order: 1, height: 1, row_span: 1, col_span: 1, col: 1},
-    {section: "Data", field_name: "description", field_type: "text", required: true, order: 2, height: 1, row_span: 1, col_span: 1, col: 2,},
-    {section: "Data", field_name: "quantity", field_type: "number", required: true, order: 3, height: 1, row_span: 1, col_span: 1, col: 3},
-    {section: "Data", field_name: "verified", field_type: "checkbox", required: true, order: 4, height: 1, row_span: 1, col_span: 1, col: 4},
-    {section: "Data", field_name: "sign", field_type: "text", required: true, order: 5, height: 1, row_span: 1, col_span: 1, col: 5},
-    {section: "Data", field_name: "lotUsed", field_type: "text", required: true, order: 6, height: 1, row_span: 1, col_span: 1, col: 6},
-    {section: "Data", field_name: "lotQuantity", field_type: "number", required: true, order: 7, height: 1, row_span: 1, col_span: 1, col: 7},
-    {section: "Data", field_name: "scrapQuantity", field_type: "number", required: false, order: 8, height: 1, row_span: 1, col_span: 1, col: 8},
-    {section: "Data", field_name: "documentedBy", field_type: "text", required: true, order: 9, height: 1, row_span: 1, col_span: 1, col: 9},
-    {section: "Data", field_name: "date", field_type: "date", required: true, order: 10, height: 1, row_span: 1, col_span: 1, col: 10}
-  ];
+// Make sure to import the styles in your app
+// import 'react-datasheet-grid/dist/style.css'
 
-const ExcelCell = ({ cell, isHeader }) => {
-  const style = {
-    gridColumn: cell.col ? `${cell.col} / span ${cell.col_span}` : `span ${cell.col_span}`,
-    gridRow: cell.row ? `${cell.row} / span ${cell.row_span}` : `span ${cell.row_span}`,
-    height: `${cell.height * 50}px`, // Assuming 30px as base height
+function VerificationCell({ rowData, setRowData }) {
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const handleClick = () => {
+    if (!rowData.componentVerified) {
+      setIsVerifying(true);
+    }
   };
 
-  const content = isHeader ? cell.name : '';
+  const handleVerify = (password) => {
+    // Replace this with your actual password verification logic
+    if (password === 'correctpassword') {
+      // Replace 'User Name' with the actual user's name
+      setRowData({ ...rowData, componentVerified: 'User Name' });
+    }
+    setIsVerifying(false);
+  };
+
+  if (isVerifying) {
+    return <PasswordPrompt onVerify={handleVerify} onCancel={() => setIsVerifying(false)} />;
+  }
 
   return (
-    <div className={`${styles.cell} ${isHeader ? styles.headerCell : ''}`} style={style}>
-      {content}
-      {!isHeader && (
-        <input 
-          type={cell.field_type} 
-          required={cell.required}
-          className={styles.input}
-        />
-      )}
+    <div onClick={handleClick}>
+      {rowData.componentVerified || 'Click to verify'}
     </div>
   );
-};
+}
 
-export default function ExcelPreview() {
-  const [headerCells, setHeaderCells] = useState([]);
-  const [dataCells, setDataCells] = useState([]);
+function PasswordPrompt({ onVerify, onCancel }) {
+  const [password, setPassword] = useState('');
 
-  useEffect(() => {
-    const headers = templateData.filter(cell => cell.section === 'Header');
-    const data = templateData.filter(cell => cell.section === 'Data');
-    setHeaderCells(headers);
-    setDataCells(data);
-  }, []);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onVerify(password);
+  };
 
   return (
-    <div className={styles.excelSheet}>
-      <div className={styles.headerRow}>
-        {headerCells.map((cell, order) => (
-          <ExcelCell key={order} cell={cell} isHeader={true} />
-        ))}
-      </div>
-      <div className={styles.dataRow}>
-        {dataCells.map((cell, order) => (
-          <ExcelCell key={order} cell={cell} isHeader={false} />
-        ))}
-      </div>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Enter password"
+      />
+      <button type="submit">Verify</button>
+      <button type="button" onClick={onCancel}>Cancel</button>
+    </form>
+  );
+}
+
+export default function Example() {
+  const [data, setData] = useState([
+    { part: '2288-PT-10', description: 'OM2 Mask', quantityRequired: 1},
+    { part: '2288-PT-10', description: 'OM2 Mask', quantityRequired: 1},
+    { part: '2312-PT-42', description: 'Oxy II EtCO2 Adult Subassembly SLM 15', quantityRequired: 1},
+  ]);
+
+  const columns = [
+    { ...keyColumn('part', textColumn), title: 'Part', disabled: true },
+    { ...keyColumn('description', textColumn), title: 'Description', disabled: true },
+    { ...keyColumn('quantityRequired', intColumn), title: 'Quantity Required', disabled: true },
+    { 
+      ...keyColumn('componentVerified', textColumn),
+      title: 'Component Verified to be Correct',
+      component: VerificationCell,
+    },
+    { ...keyColumn('lotUsed', intColumn), title: 'Lot Used'},
+    { ...keyColumn('lotQtyUsed', intColumn), title: 'Lot Qty. Used'},
+    { ...keyColumn('scrapQty', intColumn), title: 'Scrap Qty. (must be identified by lot)'},
+    { ...keyColumn('documentedBy', textColumn), title: 'Documented By:', 
+      component: VerificationCell,},
+  ];
+
+  return (
+    <DataSheetGrid
+      value={data}
+      onChange={setData}
+      columns={columns}
+      lockRows
+      disableExpandSelection
+    />
   );
 }

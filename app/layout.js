@@ -2,6 +2,7 @@ import { Inter } from "next/font/google";
 import { SessionProviderWrapper } from "../components/SessionProviderWrapper";
 
 import "./globals.css";
+import 'react-datasheet-grid/dist/style.css'
 
 const inter = Inter({ subsets: ["latin"] });
 

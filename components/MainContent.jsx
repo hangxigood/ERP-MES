@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { DataSheetGrid, keyColumn, textColumn, dateColumn } from 'react-datasheet-grid';
 
 const getCurrentDate = () => {
   const today = new Date();
@@ -11,39 +12,42 @@ const getCurrentDate = () => {
 
 const MainContent = ({ initialData, mode = 'create', batchId = null }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const buttonText = mode === 'create' ? 'Create' : 'Update';
   
   // default form data
-  const defaultFormData = {
-    name: 'OXY BATCH RECORD',
-    documentNumber: 'DO1862',
-    revision: '4',
-    date: getCurrentDate(),
-    family: 'Oxy ETCO2 (2.0)',
-    partPrefix: 'SMI2/',
-    partNumber: 'OM-2125-14SLM',
-    description: "OxyMask II Adult EtCO2 14', SLM 15'",
-    lotNumber: '',
-    manufactureDate: getCurrentDate(),
-  };
+  const defaultFormData = [
+    { field: 'name', value: 'OXY BATCH RECORD' },
+    { field: 'documentNumber', value: 'DO1862' },
+    { field: 'revision', value: '4' },
+    { field: 'date', value: getCurrentDate() },
+    { field: 'family', value: 'Oxy ETCO2 (2.0)' },
+    { field: 'partPrefix', value: 'SMI2/' },
+    { field: 'partNumber', value: 'OM-2125-14SLM' },
+    { field: 'description', value: "OxyMask II Adult EtCO2 14', SLM 15'" },
+    { field: 'lotNumber', value: '' },
+    { field: 'manufactureDate', value: getCurrentDate() },
+  ];
 
-  const [formData, setFormData] = useState(mode === 'create' ? defaultFormData : initialData || {});
+  const [formData, setFormData] = useState(
+    mode === 'create' 
+      ? defaultFormData 
+      : initialData 
+        ? Object.entries(initialData).map(([field, value]) => ({ field, value }))
+        : []
+  );
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData(Object.entries(initialData).map(([field, value]) => ({ field, value })));
     }
   }, [initialData]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
+  const columns = [
+    { ...keyColumn('field', textColumn), title: 'Field', disabled: true },
+    { ...keyColumn('value', textColumn), title: 'Value' },
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,7 +56,7 @@ const MainContent = ({ initialData, mode = 'create', batchId = null }) => {
 
     try {
       const submissionData = {
-        ...formData,
+        ...Object.fromEntries(formData.map(item => [item.field, item.value])),
         updatedById: session.user.id,
       };
 
@@ -87,35 +91,14 @@ const MainContent = ({ initialData, mode = 'create', batchId = null }) => {
   return (
     <main className="flex flex-col ml-5 w-full">
       <form onSubmit={handleSubmit} className="flex flex-col mt-10">
-        {Object.entries(formData)
-          .filter(([key]) => key in defaultFormData)
-          .map(([key, value]) => (
-            <div key={key} className="flex flex-col mb-4">
-              <label className="mb-1 font-semibold text-gray-700" htmlFor={key}>
-                {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').trim()}:
-              </label>
-              {key === 'description' ? (
-                <textarea
-                  id={key}
-                  name={key}
-                  value={value}
-                  onChange={handleChange}
-                  className="border rounded px-2 py-1 text-black"
-                />
-              ) : (
-                <input
-                  id={key}
-                  type={key === 'date' || key === 'manufactureDate' ? 'date' : 'text'}
-                  name={key}
-                  value={value}
-                  onChange={handleChange}
-                  className="border rounded px-2 py-1 text-black"
-                  readOnly={key === 'date'}
-                />
-              )}
-            </div>
-          ))}
-        <div className="flex justify-end">
+        <DataSheetGrid
+          value={formData}
+          onChange={setFormData}
+          columns={columns}
+          lockRows
+          disableExpandSelection
+        />
+        <div className="flex justify-end mt-4">
           <button 
             type="submit" 
             className={`px-16 py-4 rounded ${isSubmitting ? 'bg-gray-300 cursor-not-allowed' : 'bg-teal-300'}`}
