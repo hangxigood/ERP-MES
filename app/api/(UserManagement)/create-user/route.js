@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
-import dbConnect from '../../../../lib/dbConnect';
+import dbConnect from '../../../../lib/mongoose';
 import User from '../../../../models/User';
 import { getToken } from 'next-auth/jwt';
 
