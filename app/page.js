@@ -38,6 +38,9 @@ const Home = () => {
         <SectionItem icon={option} text="Open Existing Batch Record"/>
       </a>
       <SectionItem icon={option} text="User Management"/>
+      <a href="/audit-log" className="hover:underline">
+        <SectionItem icon={option} text="Audit Log"/>
+      </a>
 
       <button 
       onClick={() => signOut({ callbackUrl: '/login' })}
