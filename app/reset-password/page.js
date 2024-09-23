@@ -15,6 +15,7 @@ function ResetPasswordPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [token, setToken] = useState("");
+    const [showPasswordRequirements, setShowPasswordRequirements] = useState(true);
 
     useEffect(() => {
         const tokenFromUrl = searchParams.get('token');
@@ -23,18 +24,39 @@ function ResetPasswordPage() {
         }
     }, [searchParams]);
 
+    function isPasswordSecure(password){
+        const minLength = 5; 
+        const hasLowerCase = /[a-z]/.test(password);
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        const hasSpecialChar = /[!@#$%^&*]/.test(password);
+
+        return password.length >= minLength && hasLowerCase && hasUpperCase && hasNumber && hasSpecialChar;
+    }
+
     async function handleSubmit(e) {
         e.preventDefault();
         setMessage("");
         setError("");
+        setShowPasswordRequirements(false);
 
-        if (!token || !newPassword || !confirmPassword) {
+        if (!newPassword || !confirmPassword) {
             setError("All fields are required");
+            return;
+        }
+
+        if (!token) {
+            setError("Error: Invalid or expired reset token, please request a new link");
             return;
         }
 
         if (newPassword !== confirmPassword) {
             setError("Passwords do not match");
+            return;
+        }
+
+        if (!isPasswordSecure(newPassword)) {
+            setError("Password must be at least 5 characters long and contain a lowercase letter, an uppercase letter, a number, and a special character");
             return;
         }
 
@@ -91,8 +113,11 @@ function ResetPasswordPage() {
                         className="w-full rounded border border-solid border-neutral-700 h-[43px] px-2 mb-4"
                     />
                     <Button text="Reset Password" type="submit" />
+                    {showPasswordRequirements && (
+                        <p className="py-5 text-gray-500 mt-2">Please use a password that is at least 5 characters long and contains a lowercase letter, an uppercase letter, a number, and a special character.</p>
+                    )}
                 </form>
-                {message && <p className="text-green-500 mt-2">{message}</p>}
+                {message && <p className="text-gray-500 mt-2">{message}</p>}
                 {error && <p className="text-red-500 mt-2">{error}</p>}
                 <NextLink href="/login" className="self-end mt-2.5 text-gray-500 text-opacity-60">Back to Login</NextLink>
             </div>

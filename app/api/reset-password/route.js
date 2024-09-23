@@ -8,7 +8,7 @@ export async function POST(request) {
     const { token, newPassword } = await request.json();
 
     if (!token || !newPassword) {
-      return NextResponse.json({ error: 'Token and new password are required' }, { status: 400 });
+      return NextResponse.json({ error: 'New password are required' }, { status: 400 });
     }
 
     await dbConnect();
@@ -19,7 +19,7 @@ export async function POST(request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'Invalid or expired reset token' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid or expired reset token, please request a new link' }, { status: 400 });
     }
 
     // Hash the new password
@@ -32,7 +32,7 @@ export async function POST(request) {
     user.resetPasswordExpires = undefined;
     await user.save();
 
-    return NextResponse.json({ message: 'Password has been reset successfully' }, { status: 200 });
+    return NextResponse.json({ message: 'Password has been reset successfully. You will be redirected to the login page.' }, { status: 200 });
   } catch (error) {
     console.error('Reset password error:', error);
     return NextResponse.json({ error: 'An error occurred while resetting the password' }, { status: 500 });

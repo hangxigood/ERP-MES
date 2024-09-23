@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongoose';
-import User from '../../../models/User'; // Assuming you have a User model
+import User from '../../../models/User'; 
 import crypto from 'crypto';
 import { sendPasswordResetEmail } from '../../../lib/sendEmail';
 
@@ -33,13 +33,9 @@ export async function POST(request) {
     console.log('Sending password reset email...');
     await sendPasswordResetEmail(email, resetToken);
 
-    return NextResponse.json({ message: 'Password reset link sent to your email' }, { status: 200 });
+    return NextResponse.json({ message: 'Password reset link has been sent. Please check your email.' }, { status: 200 });
   } catch (error) {
     console.error('Forgot password error:', error);
     return NextResponse.json({ error: 'An error occurred while processing your request' }, { status: 500 });
   }
 }
-
-// Remove or comment out the rest of the functions for now
-// function generateResetToken() { ... }
-// async function sendResetEmail(email, resetLink) { ... }
