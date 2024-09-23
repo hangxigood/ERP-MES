@@ -9,7 +9,7 @@ export default function CreateUser() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: '',
+    // password: '',
     role: 'LABELING',
   });
   const [message, setMessage] = useState('');
@@ -40,7 +40,7 @@ export default function CreateUser() {
       });
       const data = await response.json();
       if (response.ok) {
-        setMessage('User created successfully');
+        setMessage('User created successfully. A password setup link has been sent to the email.');
         setFormData({ name: '', email: '', password: '', role: 'LABELING' });
       } else {
         setMessage(data.message || 'Error creating user');
@@ -83,7 +83,7 @@ export default function CreateUser() {
               required
             />
           </div>
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
               Password
             </label>
@@ -96,7 +96,7 @@ export default function CreateUser() {
               onChange={handleChange}
               required
             />
-          </div>
+          </div> */}
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
               Role
