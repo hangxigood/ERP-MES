@@ -8,6 +8,7 @@ import Button from "../../components/ui/Button";
 import Link from "../../components/ui/Link";
 import Image from 'next/image';
 import logo from "../../public/images/SMI_logo.png";
+import NextLink from "next/link";
 
 function LoginPage() {
     const [error, setError] = useState("");
@@ -67,7 +68,9 @@ function LoginPage() {
                     <InputField label="Password" id="password" type="password" required />
                     <Button text="LOGIN" type="submit" />
                 </form>
-                <Link href="/forgot-password" text="Forgot Password?" className="self-end mt-2.5 text-gray-500 text-opacity-60" />
+                <NextLink href="/forgot-password" className="self-end mt-2.5 text-gray-500 text-opacity-60">
+                    Forgot Password?
+                </NextLink>
                 <p className="self-center mt-28 text-center text-gray-500 text-opacity-60 max-md:mt-10">
                     Need an account? <Link href="/signup" text="SIGN UP" underline />
                 </p>
