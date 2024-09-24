@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema({
     enum: ['ADMIN', 'PRODUCTION', 'TEAM_LEADER', 'QA', 'LABELING'],
     required: true 
   },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
