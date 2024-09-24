@@ -18,5 +18,7 @@ export default withAuth(
 
 // Protect all routes except /login, /public, and /api
 
+
 export const config = { matcher: ["/((?!login|forgot-password|reset-password|public|api).*)"] }
+
 

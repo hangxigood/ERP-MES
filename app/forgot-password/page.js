@@ -22,6 +22,7 @@ function ForgotPasswordPage() {
         console.log("handleSubmit called. Email value:", email);
 
         if (!email) {
+
             setError("Email is required");
             return;
         }
@@ -37,6 +38,8 @@ function ForgotPasswordPage() {
 
             if (response.ok) {
                 setMessage(data.message);
+                router.push('/reset-password');
+
             } else {
                 setError(data.error);
             }
@@ -65,8 +68,10 @@ function ForgotPasswordPage() {
                     <InputField id="email" type="email" />
                     <Button text="Send Reset Link" type="submit" />
                 </form>
-                {message && <p className="py-5 text-gray-500 mt-2">{message}</p>}
-                {error && <p className="py-5 text-red-500 mt-2">{error}</p>}
+
+                {message && <p className="text-green-500 mt-2">{message}</p>}
+                {error && <p className="text-red-500 mt-2">{error}</p>}
+
                 <NextLink href="/login" className="self-end mt-2.5 text-gray-500 text-opacity-60">Back to Login</NextLink>
             </div>
         </div>
