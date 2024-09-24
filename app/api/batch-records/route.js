@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongoose';
 import BatchRecord from '../../../models/BatchRecord';
+import Template from '../../../models/Template'; // Add this line to import the Template model
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../lib/authOptions";
 
