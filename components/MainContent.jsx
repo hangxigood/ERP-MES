@@ -1,85 +1,73 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { DataSheetGrid, keyColumn, textColumn, dateColumn } from 'react-datasheet-grid';
+import { DataSheetGrid, keyColumn, textColumn } from 'react-datasheet-grid';
 
-const getCurrentDate = () => {
-  const today = new Date();
-  return today.toISOString().split('T')[0]; // Returns YYYY-MM-DD
-};
-
-const MainContent = ({ initialData, mode = 'create', batchId = null }) => {
+const MainContent = ({ initialData, onUpdate }) => {
+  // State to hold the transformed form data
+  const [formData, setFormData] = useState([]);
+  // State to track form submission status
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: session } = useSession();
-  const router = useRouter();
-  const buttonText = mode === 'create' ? 'Create' : 'Update';
-  
-  // default form data
-  const defaultFormData = [
-    { field: 'name', value: 'OXY BATCH RECORD' },
-    { field: 'documentNumber', value: 'DO1862' },
-    { field: 'revision', value: '4' },
-    { field: 'date', value: getCurrentDate() },
-    { field: 'family', value: 'Oxy ETCO2 (2.0)' },
-    { field: 'partPrefix', value: 'SMI2/' },
-    { field: 'partNumber', value: 'OM-2125-14SLM' },
-    { field: 'description', value: "OxyMask II Adult EtCO2 14', SLM 15'" },
-    { field: 'lotNumber', value: '' },
-    { field: 'manufactureDate', value: getCurrentDate() },
-  ];
-
-  const [formData, setFormData] = useState(
-    mode === 'create' 
-      ? defaultFormData 
-      : initialData 
-        ? Object.entries(initialData).map(([field, value]) => ({ field, value }))
-        : []
-  );
 
   useEffect(() => {
-    if (initialData) {
-      setFormData(Object.entries(initialData).map(([field, value]) => ({ field, value })));
+    console.log('Initial Data:', initialData); // Log the initial data for debugging
+
+    // Check if initialData and its fields property exist and fields is an array
+    if (initialData && initialData.fields && Array.isArray(initialData.fields)) {
+      // Find the first field that has an array as its fieldValue
+      const fieldWithArrayValue = initialData.fields.find(field => Array.isArray(field.fieldValue));
+      
+      if (fieldWithArrayValue) {
+        // If we found a field with an array value, use its length to determine the number of rows
+        const rowCount = fieldWithArrayValue.fieldValue.length;
+        
+        // Create an array of row objects
+        const transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
+          const rowData = {};
+          // For each field, add its value to the row object
+          initialData.fields.forEach(field => {
+            rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+              ? (field.fieldValue[rowIndex] || '') // Use the value at this index if it exists, otherwise empty string
+              : field.fieldValue || ''; // If not an array, use the single value or empty string
+          });
+          return rowData;
+        });
+        
+        // Update the state with the transformed data
+        setFormData(transformedData);
+      } else {
+        // If no field has an array value, exchange row and column
+        const transformedData = [
+          initialData.fields.reduce((acc, field) => {
+            acc[field.fieldName] = field.fieldValue || '';
+            return acc;
+          }, {})
+        ];
+        setFormData(transformedData);
+      }
     }
-  }, [initialData]);
+    console.log('Form Data:', formData);
+  }, [initialData]); // Re-run this effect if initialData changes
 
-  const columns = [
-    { ...keyColumn('field', textColumn), title: 'Field', disabled: true },
-    { ...keyColumn('value', textColumn), title: 'Value' },
-  ];
+  // Create column definitions for the DataSheetGrid
+  const columns = initialData?.fields?.map(field => ({
+    ...keyColumn(field.fieldName, textColumn),
+    title: field.fieldName,
+  })) || [];
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (isSubmitting) return; // Prevent multiple submissions
     setIsSubmitting(true);
 
     try {
-      const submissionData = {
-        ...Object.fromEntries(formData.map(item => [item.field, item.value])),
-        updatedById: session.user.id,
-      };
-
-      if (mode === 'create') {
-        submissionData.createdById = session.user.id;
-      }
-
-      const url = mode === 'create' ? '/api/batch-record' : `/api/batch-record/${batchId}`;
-      const method = mode === 'create' ? 'POST' : 'PUT';
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(submissionData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        router.push(`/batch-record/${result.id}`);
-      } else {
-        const errorData = await response.json();
-        alert('Error: ' + errorData.message);
-      }
+      // Transform the data back to the original structure before submitting
+      const submissionData = initialData.fields.map(field => ({
+        fieldName: field.fieldName,
+        fieldValue: formData.map(row => row[field.fieldName] || '')
+      }));
+      await onUpdate(submissionData, 'submitted');
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Error submitting form');
@@ -89,22 +77,23 @@ const MainContent = ({ initialData, mode = 'create', batchId = null }) => {
   };
 
   return (
-    <main className="flex flex-col ml-5 w-full">
+    <main className="flex flex-col w-full">
       <form onSubmit={handleSubmit} className="flex flex-col mt-10">
         <DataSheetGrid
+          height={900}
+          headerRowHeight={90}
           value={formData}
           onChange={setFormData}
           columns={columns}
           lockRows
-          disableExpandSelection
         />
         <div className="flex justify-end mt-4">
           <button 
             type="submit" 
-            className={`px-16 py-4 rounded ${isSubmitting ? 'bg-gray-300 cursor-not-allowed' : 'bg-teal-300'}`}
+            className={`px-8 py-2 rounded ${isSubmitting ? 'bg-gray-300 cursor-not-allowed' : 'bg-teal-300'}`}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Submitting...' : buttonText}
+            {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
         </div>
       </form>
