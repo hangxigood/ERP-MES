@@ -10,7 +10,6 @@ import Image from 'next/image';
 import logo from "../../public/images/SMI_logo.png";
 import NextLink from "next/link";
 
-
 function LoginPage() {
     const [error, setError] = useState("");
     const router = useRouter();
