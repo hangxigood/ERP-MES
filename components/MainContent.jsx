@@ -1,59 +1,68 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DataSheetGrid, keyColumn, textColumn } from 'react-datasheet-grid';
 
 const MainContent = ({ initialData, onUpdate }) => {
-  // State to hold the transformed form data
   const [formData, setFormData] = useState([]);
-  // State to track form submission status
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    console.log('Initial Data:', initialData); // Log the initial data for debugging
+    if (initialData?.fields) {
+      const rowCount = Math.max(
+        ...initialData.fields
+          .filter(field => Array.isArray(field.fieldValue))
+          .map(field => field.fieldValue.length),
+        1
+      );
 
-    // Check if initialData and its fields property exist and fields is an array
-    if (initialData && initialData.fields && Array.isArray(initialData.fields)) {
-      // Find the first field that has an array as its fieldValue
-      const fieldWithArrayValue = initialData.fields.find(field => Array.isArray(field.fieldValue));
-      
-      if (fieldWithArrayValue) {
-        // If we found a field with an array value, use its length to determine the number of rows
-        const rowCount = fieldWithArrayValue.fieldValue.length;
-        
-        // Create an array of row objects
-        const transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
-          const rowData = {};
-          // For each field, add its value to the row object
+      let transformedData;
+
+      if (rowCount >= 3) {
+        transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
+          const rowData = { id: `row_${rowIndex}` };
           initialData.fields.forEach(field => {
-            rowData[field.fieldName] = Array.isArray(field.fieldValue) 
-              ? (field.fieldValue[rowIndex] || '') // Use the value at this index if it exists, otherwise empty string
-              : field.fieldValue || ''; // If not an array, use the single value or empty string
+            rowData[field.fieldName] = Array.isArray(field.fieldValue)
+              ? (field.fieldValue[rowIndex] || '')
+              : field.fieldValue || '';
           });
           return rowData;
         });
-        
-        // Update the state with the transformed data
-        setFormData(transformedData);
       } else {
-        // If no field has an array value, exchange row and column
-        const transformedData = [
-          initialData.fields.reduce((acc, field) => {
-            acc[field.fieldName] = field.fieldValue || '';
-            return acc;
-          }, {})
-        ];
-        setFormData(transformedData);
+        transformedData = initialData.fields.map(field => ({
+          fieldName: field.fieldName,
+          fieldValue: Array.isArray(field.fieldValue) ? field.fieldValue.join(', ') : field.fieldValue || ''
+        }));
       }
-    }
-    console.log('Form Data:', formData);
-  }, [initialData]); // Re-run this effect if initialData changes
 
-  // Create column definitions for the DataSheetGrid
-  const columns = initialData?.fields?.map(field => ({
-    ...keyColumn(field.fieldName, textColumn),
-    title: field.fieldName,
-  })) || [];
+      setFormData(transformedData);
+    } else {
+      setFormData([]);
+    }
+  }, [initialData]);
+
+  const columns = useMemo(() => {
+    if (formData.length === 0) return [];
+
+    if ('fieldName' in formData[0]) {
+      // Case for less than 3 rows
+      return [
+        { ...keyColumn('fieldName', textColumn), title: 'Field Name', disabled: true },
+        { ...keyColumn('fieldValue', textColumn), title: 'Field Value' },
+      ];
+    } else {
+      // Case for 3 or more rows
+      return Object.keys(formData[0])
+        .filter(key => key !== 'id')
+        .map(key => ({
+          ...keyColumn(key, textColumn),
+          title: key,
+        }));
+    }
+  }, [formData]);
+
+  console.log('columns', columns);
+  console.log('formData', formData);
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -80,6 +89,7 @@ const MainContent = ({ initialData, onUpdate }) => {
     <main className="flex flex-col w-full">
       <form onSubmit={handleSubmit} className="flex flex-col mt-10">
         <DataSheetGrid
+          key={JSON.stringify(formData)} 
           height={900}
           headerRowHeight={90}
           value={formData}
