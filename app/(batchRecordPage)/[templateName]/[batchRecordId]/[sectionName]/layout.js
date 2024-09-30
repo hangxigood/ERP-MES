@@ -45,7 +45,8 @@ export default function BatchRecordLayout({ children, params }) {
       <Header title={`BATCH RECORD: ${decodeURIComponent(templateName)}`} />
       <div className="flex flex-1">
         <Sidebar availableSections={sections} />
-        <main className="flex-grow p-6">
+        {/* after adding overflow-hidden, the shaking is gone */}
+        <main className="flex-grow p-6 overflow-hidden"> 
           {children}
         </main>
       </div>

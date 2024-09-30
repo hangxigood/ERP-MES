@@ -24,10 +24,23 @@ const MainContent = ({ initialData, onUpdate }) => {
       let newColumns;
 
       if (rowCount >= 3) {
-        // For 3 or more rows, create columns for each field
+        // Calculate max length for each field
+        const maxLengths = initialData.fields.reduce((acc, field) => {
+          const maxFieldLength = Math.max(
+            field.fieldName.length,
+            ...field.fieldValue.map(value => String(value).length)
+          );
+          acc[field.fieldName] = maxFieldLength;
+          return acc;
+        }, {});
+
+        console.log("maxLengths", initialData.fields.map(field => maxLengths[field.fieldName]));
+
+        // Create columns with adjusted minWidth
         newColumns = initialData.fields.map(field => ({
           ...keyColumn(field.fieldName, textColumn),
           title: field.fieldName,
+          minWidth: Math.max(100, maxLengths[field.fieldName] * 8), // Adjust multiplier as needed
         }));
 
         // Create an array of row objects
@@ -44,10 +57,28 @@ const MainContent = ({ initialData, onUpdate }) => {
           return rowData;
         }); 
       } else {
-        // For less than 3 rows, use fieldName and fieldValue columns
+        // For less than 3 rows, adjust minWidth for fieldName and fieldValue individually
+        const maxFieldNameLength = Math.max(...initialData.fields.map(f => f.fieldName.length));
+        
+        const fieldValueLengths = initialData.fields.map(f => 
+          Array.isArray(f.fieldValue) 
+            ? Math.max(...f.fieldValue.map(v => String(v).length))
+            : String(f.fieldValue).length
+        );
+        const maxFieldValueLength = Math.max(...fieldValueLengths);
+
         newColumns = [
-          { ...keyColumn('fieldName', textColumn), title: 'Field Name', disabled: true },
-          { ...keyColumn('fieldValue', textColumn), title: 'Field Value' },
+          { 
+            ...keyColumn('fieldName', textColumn), 
+            title: 'Field Name', 
+            disabled: true,
+            minWidth: maxFieldNameLength,
+          },
+          { 
+            ...keyColumn('fieldValue', textColumn), 
+            title: 'Field Value',
+            minWidth: maxFieldValueLength,
+          },
         ];
 
         transformedData = initialData.fields.map(field => ({
@@ -92,16 +123,17 @@ const MainContent = ({ initialData, onUpdate }) => {
   }
 
   return (
-    <main className="flex flex-col w-full">
-      <form onSubmit={handleSubmit} className="flex flex-col mt-10">
-        <DataSheetGrid
-          height={900}
-          headerRowHeight={90}
-          value={formData}
-          onChange={setFormData}
-          columns={columns}
-          lockRows
-        />
+    <main className="flex flex-col w-full h-screen"> {/* Add h-screen */}
+      <form onSubmit={handleSubmit} className="flex flex-col mt-10 h-full overflow-hidden"> {/* Add h-full and overflow-hidden */}
+        <div className="flex-grow overflow-auto"> {/* Add this wrapper div */}
+          <DataSheetGrid
+            height={600}
+            headerRowHeight={90}
+            value={formData}
+            onChange={setFormData}
+            columns={columns}
+          />
+        </div>
         <div className="flex justify-end mt-4">
           <button 
             type="submit" 
