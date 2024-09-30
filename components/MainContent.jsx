@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DataSheetGrid, keyColumn, textColumn } from 'react-datasheet-grid';
+import { DataSheetGrid, keyColumn, textColumn, floatColumn, dateColumn } from 'react-datasheet-grid';
 
 const MainContent = ({ initialData, onUpdate }) => {
   // State to hold the transformed form data
@@ -36,19 +36,28 @@ const MainContent = ({ initialData, onUpdate }) => {
 
         console.log("maxLengths", initialData.fields.map(field => maxLengths[field.fieldName]));
 
-        // Create columns with adjusted minWidth
-        newColumns = initialData.fields.map(field => ({
-          ...keyColumn(field.fieldName, textColumn),
-          title: field.fieldName,
-          minWidth: Math.max(100, maxLengths[field.fieldName] * 8), // Adjust multiplier as needed
-        }));
+        // Create columns with adjusted minWidth and proper formatting
+        newColumns = initialData.fields.map(field => {
+          let columnType = textColumn;
+          if (field.fieldName === 'Quantity' || field.fieldName === 'Lot Qty. Used' || field.fieldName === 'Scrap Qty.(must be identified by lot)') {
+            columnType = floatColumn;
+          } else if (field.fieldName === 'Date') {
+            columnType = dateColumn;
+          }
+
+          return {
+            ...keyColumn(field.fieldName, columnType),
+            title: field.fieldName,
+            minWidth: Math.max(100, maxLengths[field.fieldName] * 13), // Adjust multiplier as needed
+          };
+        });
 
         // Create an array of row objects
         transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
           const rowData = {
             id: `row_${rowIndex}` // Add a unique id to each row
           };
-        // For each field, add its value to the row object
+          // For each field, add its value to the row object
         initialData.fields.forEach(field => {
           rowData[field.fieldName] = Array.isArray(field.fieldValue) 
             ? (field.fieldValue[rowIndex] || '') // Use the value at this index if it exists, otherwise empty string
