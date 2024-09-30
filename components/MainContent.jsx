@@ -127,7 +127,7 @@ const MainContent = ({ initialData, onUpdate }) => {
       <form onSubmit={handleSubmit} className="flex flex-col mt-10 h-full overflow-hidden"> {/* Add h-full and overflow-hidden */}
         <div className="flex-grow overflow-auto"> {/* Add this wrapper div */}
           <DataSheetGrid
-            height={600}
+            height="100vh"
             headerRowHeight={90}
             value={formData}
             onChange={setFormData}
