@@ -40,7 +40,8 @@ const MainContent = ({ initialData, onUpdate }) => {
         newColumns = initialData.fields.map(field => ({
           ...keyColumn(field.fieldName, textColumn),
           title: field.fieldName,
-          minWidth: Math.max(100, maxLengths[field.fieldName] * 8), // Adjust multiplier as needed
+          minWidth: Math.max(100, Math.log(maxLengths[field.fieldName] + 1) * 80), // Adjust multiplier as needed
+          // minWidth: Math.max(100, maxLengths[field.fieldName] * 11), // Adjust multiplier as needed
         }));
 
         // Create an array of row objects
@@ -123,15 +124,15 @@ const MainContent = ({ initialData, onUpdate }) => {
   }
 
   return (
-    <main className="flex flex-col w-full h-screen"> {/* Add h-screen */}
-      <form onSubmit={handleSubmit} className="flex flex-col mt-10 h-full overflow-hidden"> {/* Add h-full and overflow-hidden */}
-        <div className="flex-grow overflow-auto"> {/* Add this wrapper div */}
+    <main className="flex flex-col w-full h-full"> {/* Remove h-screen */}
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <div className="flex-grow"> {/* Remove overflow-auto */}
           <DataSheetGrid
-            height="100vh"
-            headerRowHeight={90}
             value={formData}
             onChange={setFormData}
             columns={columns}
+            height="100%"
+            headerRowHeight={90}
           />
         </div>
         <div className="flex justify-end mt-4">
