@@ -23,12 +23,13 @@ const MainContent = ({ initialData, onUpdate }) => {
       let transformedData;
       let newColumns;
 
-      if (rowCount >= 3) {
+      if (rowCount >= 2) {
         // Calculate max length for each field
         const maxLengths = initialData.fields.reduce((acc, field) => {
+          const fieldValues = Array.isArray(field.fieldValue) ? field.fieldValue : [field.fieldValue];
           const maxFieldLength = Math.max(
             field.fieldName.length,
-            ...field.fieldValue.map(value => String(value).length)
+            ...fieldValues.map(value => String(value).length)
           );
           acc[field.fieldName] = maxFieldLength;
           return acc;
@@ -53,12 +54,12 @@ const MainContent = ({ initialData, onUpdate }) => {
         initialData.fields.forEach(field => {
           rowData[field.fieldName] = Array.isArray(field.fieldValue) 
             ? (field.fieldValue[rowIndex] || '') // Use the value at this index if it exists, otherwise empty string
-            : field.fieldValue || ''; // If not an array, use the single value or empty string
+            : (rowIndex === 0 ? field.fieldValue || '' : ''); // If not an array, use the single value for the first row, empty string for others
         });
           return rowData;
         }); 
       } else {
-        // For less than 3 rows, adjust layout
+        // For less than 2 rows, adjust layout
         const maxFieldNameLength = Math.max(...initialData.fields.map(f => f.fieldName.length));
         const maxFieldValueLength = Math.max(...initialData.fields.map(f => 
           Array.isArray(f.fieldValue) 
