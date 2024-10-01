@@ -6,7 +6,10 @@ import Header from '../../../components/Header';
 
 export default function EditUser() {
   const { data: session, status } = useSession();
-  const [userEmail, setUserEmail] = useState('');
+  const [searchEmail, setSearchEmail] = useState('');
+  const [searchName, setSearchName] = useState('');
+  const [possibleMatches, setPossibleMatches] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [fieldsToUpdate, setFieldsToUpdate] = useState([]);
   const [updatedValues, setUpdatedValues] = useState({});
   const [adminPassword, setAdminPassword] = useState('');
@@ -31,18 +34,42 @@ export default function EditUser() {
     setUpdatedValues(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleSearch = async () => {
+    try {
+      const query = new URLSearchParams();
+      if (searchEmail) query.append('email', searchEmail);
+      if (searchName) query.append('name', searchName);
+
+      const response = await fetch(`/api/edit-user?${query.toString()}`);
+      const data = await response.json();
+      if (response.ok) {
+        setPossibleMatches(data.users);
+      } else {
+        setMessage(data.message || 'Error searching users');
+      }
+    } catch (error) {
+      setMessage('Error searching users');
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setShowConfirmation(true);
   };
 
   const confirmUpdate = async () => {
+    if (fieldsToUpdate.length === 0) {
+      setMessage('No changes were made');
+      setShowConfirmation(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/edit-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userEmail,
+          userEmail: selectedUser.email,
           updatedFields: fieldsToUpdate.reduce((acc, field) => {
             acc[field] = updatedValues[field];
             return acc;
@@ -55,7 +82,10 @@ export default function EditUser() {
       if (response.ok) {
         setMessage('User updated successfully');
         // Reset form
-        setUserEmail('');
+        setSearchEmail('');
+        setSearchName('');
+        setPossibleMatches([]);
+        setSelectedUser(null);
         setFieldsToUpdate([]);
         setUpdatedValues({});
         setAdminPassword('');
@@ -84,98 +114,139 @@ export default function EditUser() {
       <div className="self-center w-full max-w-md mt-8">
         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-              User's Email
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="searchEmail">
+              Search by Email
             </label>
             <input
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="email"
+              id="searchEmail"
               type="email"
-              value={userEmail}
-              onChange={(e) => setUserEmail(e.target.value)}
-              required
+              value={searchEmail}
+              onChange={(e) => setSearchEmail(e.target.value)}
             />
           </div>
-          
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Fields to Update
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="searchName">
+              Search by Name
             </label>
-            <div>
-              <label className="inline-flex items-center mr-4">
-                <input type="checkbox" className="form-checkbox" onChange={() => handleFieldSelection('email')} />
-                <span className="ml-2">Email</span>
-              </label>
-              <label className="inline-flex items-center mr-4">
-                <input type="checkbox" className="form-checkbox" onChange={() => handleFieldSelection('name')} />
-                <span className="ml-2">Name</span>
-              </label>
-              <label className="inline-flex items-center">
-                <input type="checkbox" className="form-checkbox" onChange={() => handleFieldSelection('role')} />
-                <span className="ml-2">Role</span>
-              </label>
-            </div>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="searchName"
+              type="text"
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+            />
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-2"
+              type="button"
+              onClick={handleSearch}
+            >
+              Search
+            </button>
           </div>
-
-          {fieldsToUpdate.includes('email') && (
+          {possibleMatches.length > 0 && (
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newEmail">
-                New Email
-              </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="newEmail"
-                type="email"
-                onChange={(e) => handleValueChange('email', e.target.value)}
-                required
-              />
-            </div>
-          )}
-
-          {fieldsToUpdate.includes('name') && (
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-                New Name
-              </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="name"
-                type="text"
-                onChange={(e) => handleValueChange('name', e.target.value)}
-                required
-              />
-            </div>
-          )}
-
-          {fieldsToUpdate.includes('role') && (
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
-                New Role
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="selectUser">
+                Select User
               </label>
               <select
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="role"
-                onChange={(e) => handleValueChange('role', e.target.value)}
+                id="selectUser"
+                onChange={(e) => setSelectedUser(possibleMatches.find(user => user.email === e.target.value))}
                 required
               >
-                <option value="">Select a role</option>
-                <option value="ADMIN">Admin</option>
-                <option value="PRODUCTION">Production</option>
-                <option value="TEAM_LEADER">Team Leader</option>
-                <option value="QA">QA</option>
-                <option value="LABELING">Labeling</option>
+                <option value="">Select a user</option>
+                {possibleMatches.map(user => (
+                  <option key={user.email} value={user.email}>
+                    {user.name} ({user.email})
+                  </option>
+                ))}
               </select>
             </div>
           )}
+          {selectedUser && (
+            <>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  Fields to Update
+                </label>
+                <div>
+                  <label className="inline-flex items-center mr-4">
+                    <input type="checkbox" className="form-checkbox" onChange={() => handleFieldSelection('email')} />
+                    <span className="ml-2">Email</span>
+                  </label>
+                  <label className="inline-flex items-center mr-4">
+                    <input type="checkbox" className="form-checkbox" onChange={() => handleFieldSelection('name')} />
+                    <span className="ml-2">Name</span>
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input type="checkbox" className="form-checkbox" onChange={() => handleFieldSelection('role')} />
+                    <span className="ml-2">Role</span>
+                  </label>
+                </div>
+              </div>
 
-          <div className="flex items-center justify-between">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="submit"
-            >
-              Update User
-            </button>
-          </div>
+              {fieldsToUpdate.includes('email') && (
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newEmail">
+                    New Email
+                  </label>
+                  <input
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="newEmail"
+                    type="email"
+                    onChange={(e) => handleValueChange('email', e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
+              {fieldsToUpdate.includes('name') && (
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
+                    New Name
+                  </label>
+                  <input
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="name"
+                    type="text"
+                    onChange={(e) => handleValueChange('name', e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
+              {fieldsToUpdate.includes('role') && (
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
+                    New Role
+                  </label>
+                  <select
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="role"
+                    onChange={(e) => handleValueChange('role', e.target.value)}
+                    required
+                  >
+                    <option value="">Select a role</option>
+                    <option value="ADMIN">Admin</option>
+                    <option value="PRODUCTION">Production</option>
+                    <option value="TEAM_LEADER">Team Leader</option>
+                    <option value="QA">QA</option>
+                    <option value="LABELING">Labeling</option>
+                  </select>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                <button
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  type="submit"
+                >
+                  Update User
+                </button>
+              </div>
+            </>
+          )}
         </form>
         {message && (
           <p className={`text-center ${message.includes('Error') ? 'text-red-500' : 'text-green-500'}`}>
@@ -188,7 +259,7 @@ export default function EditUser() {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
           <div className="bg-white p-5 rounded-lg shadow-xl">
             <h2 className="text-xl font-bold mb-4">Confirm Update</h2>
-            <p>You are about to update the following fields for {userEmail}:</p>
+            <p>You are about to update the following fields for {selectedUser.email}:</p>
             <ul className="list-disc list-inside mb-4">
               {fieldsToUpdate.map(field => (
                 <li key={field}>{field}: {updatedValues[field]}</li>

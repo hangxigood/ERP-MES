@@ -47,3 +47,44 @@ export async function POST(request) {
     return NextResponse.json({ message: 'Error processing request', error: error.message }, { status: 500 });
   }
 }
+
+export async function GET(request) {
+  const token = await getToken({ req: request });
+  if (!token || token.role !== 'ADMIN') {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get('email');
+    const name = searchParams.get('name');
+
+    await dbConnect();
+
+    let users;
+    if (email && name) {
+      users = await User.find({
+        $or: [
+          { email: new RegExp(email, 'i') },
+          { name: new RegExp(name, 'i') }
+        ]
+      });
+    } else if (email) {
+      users = await User.find({ email: new RegExp(email, 'i') });
+    } else if (name) {
+      users = await User.find({ name: new RegExp(name, 'i') });
+    } else {
+      return NextResponse.json({ message: 'Invalid search query' }, { status: 400 });
+    }
+
+    const usersWithoutPassword = users.map(user => {
+      const { password, ...userWithoutPassword } = user.toObject();
+      return userWithoutPassword;
+    });
+
+    return NextResponse.json({ users: usersWithoutPassword }, { status: 200 });
+  } catch (error) {
+    console.error('Error processing request:', error);
+    return NextResponse.json({ message: 'Error processing request', error: error.message }, { status: 500 });
+  }
+}
