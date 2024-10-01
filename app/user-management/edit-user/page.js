@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Header from '../../../components/Header';
 
@@ -15,6 +15,36 @@ export default function EditUser() {
   const [adminPassword, setAdminPassword] = useState('');
   const [message, setMessage] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [updatedFields, setUpdatedFields] = useState({});
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/edit-user');
+      const data = await response.json();
+      if (response.ok) {
+        setAllUsers(data.users);
+        setFilteredUsers(data.users);  // Initialize filtered users with all users
+      } else {
+        setMessage(data.message || 'Error fetching users');
+      }
+    } catch (error) {
+      setMessage('Error fetching users');
+    }
+  };
+
+  useEffect(() => {
+    const filtered = allUsers.filter(user => 
+      user.email.toLowerCase().includes(searchEmail.toLowerCase()) &&
+      user.name.toLowerCase().includes(searchName.toLowerCase())
+    );
+    setFilteredUsers(filtered);
+  }, [searchEmail, searchName, allUsers]);
 
   if (status === "loading") {
     return <div>Loading...</div>;
@@ -32,24 +62,6 @@ export default function EditUser() {
 
   const handleValueChange = (field, value) => {
     setUpdatedValues(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSearch = async () => {
-    try {
-      const query = new URLSearchParams();
-      if (searchEmail) query.append('email', searchEmail);
-      if (searchName) query.append('name', searchName);
-
-      const response = await fetch(`/api/edit-user?${query.toString()}`);
-      const data = await response.json();
-      if (response.ok) {
-        setPossibleMatches(data.users);
-      } else {
-        setMessage(data.message || 'Error searching users');
-      }
-    } catch (error) {
-      setMessage('Error searching users');
-    }
   };
 
   const handleSubmit = (e) => {
@@ -81,6 +93,7 @@ export default function EditUser() {
       const data = await response.json();
       if (response.ok) {
         setMessage('User updated successfully');
+        fetchUsers();  // Refresh the user list after successful update
         // Reset form
         setSearchEmail('');
         setSearchName('');
@@ -108,62 +121,77 @@ export default function EditUser() {
     setShowConfirmation(false);
   };
 
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+    setUpdatedFields({});
+    setSearchEmail(user.email);
+    setSearchName(user.name);
+  };
+
+  const handleFieldChange = (field, value) => {
+    setUpdatedFields(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
     <div className="flex flex-col bg-white">
       <Header title="EDIT USER" />
-      <div className="self-center w-full max-w-md mt-8">
+      <div className="self-center w-full max-w-4xl mt-8">
         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="searchEmail">
-              Search by Email
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="searchEmail"
-              type="email"
-              value={searchEmail}
-              onChange={(e) => setSearchEmail(e.target.value)}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="searchName">
-              Search by Name
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="searchName"
-              type="text"
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-            />
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-2"
-              type="button"
-              onClick={handleSearch}
-            >
-              Search
-            </button>
-          </div>
-          {possibleMatches.length > 0 && (
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="selectUser">
-                Select User
+          <div className="flex mb-4">
+            <div className="w-1/2 pr-2">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="searchEmail">
+                Filter by Email
               </label>
-              <select
+              <input
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="selectUser"
-                onChange={(e) => setSelectedUser(possibleMatches.find(user => user.email === e.target.value))}
-                required
-              >
-                <option value="">Select a user</option>
-                {possibleMatches.map(user => (
-                  <option key={user.email} value={user.email}>
-                    {user.name} ({user.email})
-                  </option>
-                ))}
-              </select>
+                id="searchEmail"
+                type="text"
+                value={searchEmail}
+                onChange={(e) => setSearchEmail(e.target.value)}
+                placeholder="Enter partial or full email"
+              />
             </div>
-          )}
+            <div className="w-1/2 pl-2">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="searchName">
+                Filter by Name
+              </label>
+              <input
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="searchName"
+                type="text"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                placeholder="Enter partial or full name"
+              />
+            </div>
+          </div>
+          
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Select User
+            </label>
+            <div className="border rounded h-48 overflow-y-auto">
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map(user => (
+                  <div 
+                    key={user.email} 
+                    className={`p-2 cursor-pointer hover:bg-gray-100 ${selectedUser && selectedUser.email === user.email ? 'bg-blue-100' : ''}`}
+                    onClick={() => handleUserSelect(user)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span>{user.name} ({user.email})</span>
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${getRoleColor(user.role)}`}>
+                        {user.role}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-2 text-gray-500">No users match the current filters</div>
+              )}
+            </div>
+          </div>
+
           {selectedUser && (
             <>
               <div className="mb-4">
@@ -297,4 +325,18 @@ export default function EditUser() {
       )}
     </div>
   );
+}
+
+// Helper function to get the appropriate color for each role
+function getRoleColor(role) {
+  switch (role) {
+    case 'ADMIN':
+      return 'bg-red-200 text-red-800';
+    case 'MANAGER':
+      return 'bg-blue-200 text-blue-800';
+    case 'USER':
+      return 'bg-green-200 text-green-800';
+    default:
+      return 'bg-gray-200 text-gray-800';
+  }
 }
