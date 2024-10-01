@@ -58,27 +58,25 @@ const MainContent = ({ initialData, onUpdate }) => {
           return rowData;
         }); 
       } else {
-        // For less than 3 rows, adjust minWidth for fieldName and fieldValue individually
+        // For less than 3 rows, adjust layout
         const maxFieldNameLength = Math.max(...initialData.fields.map(f => f.fieldName.length));
-        
-        const fieldValueLengths = initialData.fields.map(f => 
+        const maxFieldValueLength = Math.max(...initialData.fields.map(f => 
           Array.isArray(f.fieldValue) 
             ? Math.max(...f.fieldValue.map(v => String(v).length))
             : String(f.fieldValue).length
-        );
-        const maxFieldValueLength = Math.max(...fieldValueLengths);
+        ));
 
         newColumns = [
           { 
             ...keyColumn('fieldName', textColumn), 
             title: 'Field Name', 
             disabled: true,
-            minWidth: maxFieldNameLength,
+            minWidth: Math.max(150, maxFieldNameLength * 10),
           },
           { 
             ...keyColumn('fieldValue', textColumn), 
             title: 'Field Value',
-            minWidth: maxFieldValueLength,
+            minWidth: Math.max(200, maxFieldValueLength * 8),
           },
         ];
 
@@ -124,9 +122,9 @@ const MainContent = ({ initialData, onUpdate }) => {
   }
 
   return (
-    <main className="flex flex-col w-full h-full"> {/* Remove h-screen */}
+    <main className="flex flex-col w-full h-full">
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
-        <div className="flex-grow"> {/* Remove overflow-auto */}
+        <div className="flex-grow">
           <DataSheetGrid
             value={formData}
             onChange={setFormData}
