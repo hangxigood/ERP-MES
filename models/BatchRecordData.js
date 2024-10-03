@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 
 const fieldSchema = new mongoose.Schema({
   fieldName: { type: String, required: true },
-  fieldValue: { type: mongoose.Schema.Types.Mixed, required: false, default: null }
+  fieldValue: { type: mongoose.Schema.Types.Mixed, required: false, default: null },
+  fieldType: { type: String, enum: ['text', 'float', 'int', 'date', 'checkbox'] }
 }, { _id: false });
 
 const batchRecordDataSchema = new mongoose.Schema({

@@ -52,7 +52,8 @@ export async function POST(request, { params }) {
       try {
         const fields = section.fields.map(field => ({
           fieldName: field.name,
-          fieldValue: field.default === '' ? null : field.default
+          fieldValue: field.default === '' ? null : field.default,
+          fieldType: field.fieldType
         }));
 
         const newBatchRecordData = new BatchRecordData({

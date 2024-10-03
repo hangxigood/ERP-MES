@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DataSheetGrid, keyColumn, textColumn, floatColumn, dateColumn } from 'react-datasheet-grid';
+import { DataSheetGrid, keyColumn, textColumn, floatColumn, intColumn, dateColumn, checkboxColumn } from 'react-datasheet-grid';
 
 const MainContent = ({ initialData, onUpdate }) => {
   // State to hold the transformed form data
@@ -20,6 +20,18 @@ const MainContent = ({ initialData, onUpdate }) => {
         1 // Ensure at least one row if no array fields
       );
 
+      const maxLengths = initialData.fields.reduce((acc, field) => {
+        const maxFieldLength = Math.max(
+          field.fieldName.length,
+          ...(Array.isArray(field.fieldValue) 
+            ? field.fieldValue.map(value => String(value).length)
+            : [String(field.fieldValue).length])
+        );
+        acc[field.fieldName] = maxFieldLength;
+        return acc;
+      }, {});
+
+    /** 
       let transformedData;
       let newColumns;
 
@@ -35,14 +47,30 @@ const MainContent = ({ initialData, onUpdate }) => {
         }, {});
 
         console.log("maxLengths", initialData.fields.map(field => maxLengths[field.fieldName]));
-
+*/
         // Create columns with adjusted minWidth and proper formatting
-        newColumns = initialData.fields.map(field => {
-          let columnType = textColumn;
-          if (field.fieldName === 'Quantity' || field.fieldName === 'Lot Qty. Used' || field.fieldName === 'Scrap Qty.(must be identified by lot)') {
-            columnType = floatColumn;
-          } else if (field.fieldName === 'Date') {
-            columnType = dateColumn;
+
+        const newColumns = initialData.fields.map(field => {
+          let columnType;
+          switch (field.fieldType) {
+            case 'float':
+              columnType = floatColumn;
+              break;
+            case 'date':
+              columnType = {
+                ...dateColumn,
+                parseDate: (value) => value ? new Date(value) : null,
+                formatDate: (date) => date ? date.toISOString().split('T')[0] : '',
+              };
+              break;
+            case 'checkbox':
+              columnType = checkboxColumn;
+              break;
+            case 'int':
+              columnType = intColumn;
+              break;
+            default:
+              columnType = textColumn;
           }
 
           return {
@@ -52,6 +80,26 @@ const MainContent = ({ initialData, onUpdate }) => {
           };
         });
 
+        const transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
+          const rowData = { id: `row_${rowIndex}` };
+          initialData.fields.forEach(field => {
+            if (field.fieldType === 'checkbox') {
+              rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+                ? (field.fieldValue[rowIndex] === 'true' || field.fieldValue[rowIndex] === true)
+                : (field.fieldValue === 'true' || field.fieldValue === true);
+            } else if (field.fieldType === 'date') {
+              const dateValue = Array.isArray(field.fieldValue) ? field.fieldValue[rowIndex] : field.fieldValue;
+              rowData[field.fieldName] = dateValue ? new Date(dateValue) : null;
+            } else {
+              rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+                ? (field.fieldValue[rowIndex] ?? '')
+                : (field.fieldValue ?? '');
+            }
+          });
+          return rowData;
+        });
+
+        /**
         // Create an array of row objects
         transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
           const rowData = {
@@ -95,7 +143,7 @@ const MainContent = ({ initialData, onUpdate }) => {
           fieldValue: Array.isArray(field.fieldValue) ? field.fieldValue.join(', ') : field.fieldValue || ''
         }));
       }
-
+*/
       setColumns(newColumns);
       setFormData(transformedData);
     } else {
@@ -116,7 +164,15 @@ const MainContent = ({ initialData, onUpdate }) => {
       // Transform the data back to the original structure before submitting
       const submissionData = initialData.fields.map(field => ({
         fieldName: field.fieldName,
-        fieldValue: formData.map(row => row[field.fieldName] || '')
+        fieldType: field.fieldType,
+        fieldValue: formData.map(row => {
+          if (field.fieldType === 'checkbox') {
+            return row[field.fieldName] ? 'true' : 'false';
+          } else if (field.fieldType === 'date') {
+            return row[field.fieldName] ? row[field.fieldName].toISOString().split('T')[0] : '';
+          }
+          return row[field.fieldName] || '';
+        })
       }));
       await onUpdate(submissionData, 'submitted');
     } catch (error) {
