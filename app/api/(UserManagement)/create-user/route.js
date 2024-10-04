@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
+// import bcrypt from 'bcrypt';
 import dbConnect from '../../../../lib/mongoose';
 import User from '../../../../models/User';
 import { getToken } from 'next-auth/jwt';
+import crypto from 'crypto';
+import { sendPasswordSetupEmail } from '../../../../lib/sendEmail';
 
 
 export async function POST(request) {
@@ -14,7 +16,7 @@ export async function POST(request) {
 
   try {
     // Parse the incoming request body for user data
-    const { name, email, password, role, createdById, updatedById } = await request.json();
+    const { name, email, role, createdById, updatedById } = await request.json();
 
     // Check if the email already exists
     await dbConnect();
@@ -24,27 +26,40 @@ export async function POST(request) {
       return NextResponse.json({ message: 'User already exists' }, { status: 400 });
     }
 
-    // Hash the password
-    const saltRounds = parseInt(process.env.SALT_ROUNDS);
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    // Generate a random password
+    const passwordSetupToken = crypto.randomBytes(16).toString('hex');
+    const passwordSetupExpires = Date.now() + 24 * 3600000; // 24 hours from now
 
-    // Create the new user
+/**
+ // Hash the password
+ const saltRounds = parseInt(process.env.SALT_ROUNDS);
+ const hashedPassword = await bcrypt.hash(password, saltRounds);
+ * 
+ */
+
+    // Create the new user without a password
     const newUser = new User({
       name,
       email,
-      password: hashedPassword,
       role,
       createdBy: createdById,
-      updatedBy: updatedById
+      updatedBy: updatedById,
+      passwordSetupToken,
+      passwordSetupExpires
     });
 
     // Save the user to the database
     await newUser.save();
 
-    // Return the created user data (excluding password)
-    const { password: _, ...userWithoutPassword } = newUser.toObject();
+    // Send email with password setup link
+    await sendPasswordSetupEmail(email, passwordSetupToken);
 
-    return NextResponse.json(userWithoutPassword, { status: 201 });
+    // Return the created user data
+    const userWithoutSensitiveInfo = newUser.toObject();
+    delete userWithoutSensitiveInfo.passwordSetupToken;
+    delete userWithoutSensitiveInfo.passwordSetupExpires;
+
+    return NextResponse.json(userWithoutSensitiveInfo, { status: 201 });
   } catch (error) {
     console.error('Error creating user:', error);
     return NextResponse.json({ message: 'Error creating user', error: error.message }, { status: 500 });
