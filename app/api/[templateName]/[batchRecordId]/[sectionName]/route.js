@@ -16,21 +16,22 @@ export async function GET(request, { params }) {
     }
 
     const { batchRecordId, sectionName } = params;
+    const decodedBatchRecordId = decodeURIComponent(batchRecordId);
 
     // Validate batchRecordId
-    if (!mongoose.Types.ObjectId.isValid(batchRecordId)) {
+    if (!mongoose.Types.ObjectId.isValid(decodedBatchRecordId)) {
       return NextResponse.json({ error: 'Invalid batch record ID' }, { status: 400 });
     }
 
     // Find the batch record
-    const batchRecord = await BatchRecord.findById(batchRecordId);
+    const batchRecord = await BatchRecord.findById(decodedBatchRecordId);
     if (!batchRecord) {
       return NextResponse.json({ error: 'Batch record not found' }, { status: 404 });
     }
 
     // Find the batch record data for the specific section
     const batchRecordData = await BatchRecordData.findOne({
-      batchRecord: batchRecordId,
+      batchRecord: decodedBatchRecordId,
       sectionName: sectionName
     });
 
