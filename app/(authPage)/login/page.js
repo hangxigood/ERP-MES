@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";  // Changed from next/router
-import InputField from "../../components/ui/InputField";
-import Button from "../../components/ui/Button";
-import Link from "../../components/ui/Link";
+import InputField from "../../../components/ui/InputField";
+import Button from "../../../components/ui/Button";
+import Link from "../../../components/ui/Link";
 import Image from 'next/image';
-import logo from "../../public/images/SMI_logo.png";
+import logo from "../../../public/images/SMI_logo.png";
 import NextLink from "next/link";
 
 

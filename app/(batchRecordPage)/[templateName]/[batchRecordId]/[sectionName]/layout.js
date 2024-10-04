@@ -11,6 +11,8 @@ export default function BatchRecordLayout({ children, params }) {
   const { data: session, status } = useSession();
   const [sections, setSections] = useState([]);
   const { templateName, batchRecordId } = params;
+  const decodedTemplateName = decodeURIComponent(templateName);
+  const decodedBatchRecordId = decodeURIComponent(batchRecordId);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -22,7 +24,7 @@ export default function BatchRecordLayout({ children, params }) {
 
     const fetchSections = async () => {
       try {
-        const response = await fetch(`/api/${templateName}/${batchRecordId}/sections`);
+        const response = await fetch(`/api/${decodedTemplateName}/${decodedBatchRecordId}/sections`);
         if (!response.ok) {
           throw new Error('Failed to fetch sections');
         }
@@ -45,7 +47,8 @@ export default function BatchRecordLayout({ children, params }) {
       <Header title={`BATCH RECORD: ${decodeURIComponent(templateName)}`} />
       <div className="flex flex-1">
         <Sidebar availableSections={sections} />
-        <main className="flex-grow p-6">
+        {/* after adding overflow-hidden, the shaking is gone */}
+        <main className="flex-grow p-6 overflow-hidden"> 
           {children}
         </main>
       </div>

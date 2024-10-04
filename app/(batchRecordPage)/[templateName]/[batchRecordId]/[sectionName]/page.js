@@ -9,6 +9,8 @@ export default function SectionPage({ params }) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { templateName, batchRecordId, sectionName } = params;
+  const decodedTemplateName = decodeURIComponent(templateName);
+  const decodedBatchRecordId = decodeURIComponent(batchRecordId);
   const [batchRecordData, setBatchRecordData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState([]);
@@ -24,7 +26,7 @@ export default function SectionPage({ params }) {
     const fetchData = async () => {
       try {
         // Ensure batchRecordId is a valid ObjectId
-        if (!batchRecordId || !/^[0-9a-fA-F]{24}$/.test(batchRecordId)) {
+        if (!decodedBatchRecordId || !/^[0-9a-fA-F]{24}$/.test(decodedBatchRecordId)) {
           throw new Error('Invalid batch record ID');
         }
 
@@ -33,7 +35,7 @@ export default function SectionPage({ params }) {
           throw new Error('Section name is undefined');
         }
 
-        const batchRecordResponse = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}`);
+        const batchRecordResponse = await fetch(`/api/${decodedTemplateName}/${decodedBatchRecordId}/${sectionName}`);
         if (!batchRecordResponse.ok) {
           throw new Error('Failed to fetch batch record data');
         }
@@ -42,7 +44,7 @@ export default function SectionPage({ params }) {
         setLoading(false);
 
         // Fetch available sections
-        const sectionsResponse = await fetch(`/api/${templateName}/${batchRecordId}/sections`);
+        const sectionsResponse = await fetch(`/api/${decodedTemplateName}/${decodedBatchRecordId}/sections`);
         if (!sectionsResponse.ok) {
           throw new Error('Failed to fetch sections');
         }
@@ -55,7 +57,7 @@ export default function SectionPage({ params }) {
     };
 
     fetchData();
-  }, [session, status, router, batchRecordId, sectionName, templateName]);
+  }, [session, status, router, decodedBatchRecordId, sectionName, decodedTemplateName]);
 
   const updateSectionData = async (newData, newStatus) => {
     try {

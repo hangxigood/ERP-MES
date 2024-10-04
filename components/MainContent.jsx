@@ -8,52 +8,94 @@ const MainContent = ({ initialData, onUpdate }) => {
   const [formData, setFormData] = useState([]);
   // State to track form submission status
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [columns, setColumns] = useState([]);
 
   useEffect(() => {
-    console.log('Initial Data:', initialData); // Log the initial data for debugging
+    if (initialData?.fields) {
+      // Find the maximum length of any array field value
+      const rowCount = Math.max(
+        ...initialData.fields
+          .filter(field => Array.isArray(field.fieldValue))
+          .map(field => field.fieldValue.length),
+        1 // Ensure at least one row if no array fields
+      );
 
-    // Check if initialData and its fields property exist and fields is an array
-    if (initialData && initialData.fields && Array.isArray(initialData.fields)) {
-      // Find the first field that has an array as its fieldValue
-      const fieldWithArrayValue = initialData.fields.find(field => Array.isArray(field.fieldValue));
-      
-      if (fieldWithArrayValue) {
-        // If we found a field with an array value, use its length to determine the number of rows
-        const rowCount = fieldWithArrayValue.fieldValue.length;
-        
+      let transformedData;
+      let newColumns;
+
+      if (rowCount >= 2) {
+        // Calculate max length for each field
+        const maxLengths = initialData.fields.reduce((acc, field) => {
+          const fieldValues = Array.isArray(field.fieldValue) ? field.fieldValue : [field.fieldValue];
+          const maxFieldLength = Math.max(
+            field.fieldName.length,
+            ...fieldValues.map(value => String(value).length)
+          );
+          acc[field.fieldName] = maxFieldLength;
+          return acc;
+        }, {});
+
+        console.log("maxLengths", initialData.fields.map(field => maxLengths[field.fieldName]));
+
+        // Create columns with adjusted minWidth
+        newColumns = initialData.fields.map(field => ({
+          ...keyColumn(field.fieldName, textColumn),
+          title: field.fieldName,
+          minWidth: Math.max(100, Math.log(maxLengths[field.fieldName] + 1) * 80), // Adjust multiplier as needed
+          // minWidth: Math.max(100, maxLengths[field.fieldName] * 11), // Adjust multiplier as needed
+        }));
+
         // Create an array of row objects
-        const transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
-          const rowData = {};
-          // For each field, add its value to the row object
-          initialData.fields.forEach(field => {
-            rowData[field.fieldName] = Array.isArray(field.fieldValue) 
-              ? (field.fieldValue[rowIndex] || '') // Use the value at this index if it exists, otherwise empty string
-              : field.fieldValue || ''; // If not an array, use the single value or empty string
-          });
-          return rowData;
+        transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
+          const rowData = {
+            id: `row_${rowIndex}` // Add a unique id to each row
+          };
+        // For each field, add its value to the row object
+        initialData.fields.forEach(field => {
+          rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+            ? (field.fieldValue[rowIndex] || '') // Use the value at this index if it exists, otherwise empty string
+            : (rowIndex === 0 ? field.fieldValue || '' : ''); // If not an array, use the single value for the first row, empty string for others
         });
-        
-        // Update the state with the transformed data
-        setFormData(transformedData);
+          return rowData;
+        }); 
       } else {
-        // If no field has an array value, exchange row and column
-        const transformedData = [
-          initialData.fields.reduce((acc, field) => {
-            acc[field.fieldName] = field.fieldValue || '';
-            return acc;
-          }, {})
-        ];
-        setFormData(transformedData);
-      }
-    }
-    console.log('Form Data:', formData);
-  }, [initialData]); // Re-run this effect if initialData changes
+        // For less than 2 rows, adjust layout
+        const maxFieldNameLength = Math.max(...initialData.fields.map(f => f.fieldName.length));
+        const maxFieldValueLength = Math.max(...initialData.fields.map(f => 
+          Array.isArray(f.fieldValue) 
+            ? Math.max(...f.fieldValue.map(v => String(v).length))
+            : String(f.fieldValue).length
+        ));
 
-  // Create column definitions for the DataSheetGrid
-  const columns = initialData?.fields?.map(field => ({
-    ...keyColumn(field.fieldName, textColumn),
-    title: field.fieldName,
-  })) || [];
+        newColumns = [
+          { 
+            ...keyColumn('fieldName', textColumn), 
+            title: 'Field Name', 
+            disabled: true,
+            minWidth: Math.max(150, maxFieldNameLength * 10),
+          },
+          { 
+            ...keyColumn('fieldValue', textColumn), 
+            title: 'Field Value',
+            minWidth: Math.max(200, maxFieldValueLength * 8),
+          },
+        ];
+
+        transformedData = initialData.fields.map(field => ({
+          fieldName: field.fieldName,
+          fieldValue: Array.isArray(field.fieldValue) ? field.fieldValue.join(', ') : field.fieldValue || ''
+        }));
+      }
+
+      setColumns(newColumns);
+      setFormData(transformedData);
+    } else {
+      setColumns([]);
+      setFormData([]);
+    }
+  }, [initialData]);
+
+  console.log(columns);
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -76,17 +118,22 @@ const MainContent = ({ initialData, onUpdate }) => {
     }
   };
 
+  if (columns.length === 0) {
+    return <div>Loading...</div>; // Or any loading indicator
+  }
+
   return (
-    <main className="flex flex-col w-full">
-      <form onSubmit={handleSubmit} className="flex flex-col mt-10">
-        <DataSheetGrid
-          height={900}
-          headerRowHeight={90}
-          value={formData}
-          onChange={setFormData}
-          columns={columns}
-          lockRows
-        />
+    <main className="flex flex-col w-full h-full">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <div className="flex-grow">
+          <DataSheetGrid
+            value={formData}
+            onChange={setFormData}
+            columns={columns}
+            height="100%"
+            headerRowHeight={90}
+          />
+        </div>
         <div className="flex justify-end mt-4">
           <button 
             type="submit" 

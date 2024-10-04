@@ -10,13 +10,15 @@ const Sidebar = ({ availableSections }) => {
   const templateName = pathSegments[0] || '';
   const batchRecordId = pathSegments[1] || '';
 
+  const decodedTemplateName = decodeURIComponent(templateName);
+  const decodedBatchRecordId = decodeURIComponent(batchRecordId);
+
   const updatedSectionItems = availableSections.map(section => {
-    const fullHref = `/${templateName}/${batchRecordId}/${section.name}`;
-    const decodedFullHref = decodeURIComponent(fullHref);
+    const fullHref = `/${decodedTemplateName}/${decodedBatchRecordId}/${section.name}`;
     return {
       text: section.displayName,
       href: fullHref,
-      isActive: decodedFullHref === decodedPathname
+      isActive: fullHref === decodedPathname
     };
   });
 

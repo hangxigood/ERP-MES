@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Button from "../../components/ui/Button";
+import Button from "../../../components/ui/Button";
 import NextLink from "next/link";
 import Image from 'next/image';
 import logo from "../../public/images/SMI_logo.png";
