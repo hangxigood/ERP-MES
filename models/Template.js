@@ -8,6 +8,7 @@ const fieldSchema = new mongoose.Schema({
 
 const sectionSchema = new mongoose.Schema({
   sectionName: { type: String, required: true },
+  sectionDescription: { type: String, required: false }, // for future use
   fields: [fieldSchema]
 }, { _id: false });
 
