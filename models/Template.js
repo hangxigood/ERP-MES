@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 
 const fieldSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  default: { type: mongoose.Schema.Types.Mixed }
+  default: { type: mongoose.Schema.Types.Mixed },
+  fieldType: { type: String, required: true, enum: ['text', 'float', 'int', 'date', 'checkbox'] }
 }, { _id: false });
 
 const sectionSchema = new mongoose.Schema({
