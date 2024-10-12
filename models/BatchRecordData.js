@@ -13,11 +13,11 @@ const batchRecordDataSchema = new mongoose.Schema({
   fields: [fieldSchema],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  signoff: {
+  signoffs: [{
     signedBy: { type: String },
     signedAt: { type: Date },
     comment: { type: String }
-  }
+  }]
 }, { timestamps: true });
 
 batchRecordDataSchema.index({ batchRecord: 1, sectionName: 1 }, { unique: true });

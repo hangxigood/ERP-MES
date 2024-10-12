@@ -21,14 +21,14 @@ export async function POST(req, { params }) {
     const updatedSection = await BatchRecordData.findOneAndUpdate(
       { batchRecord: batchRecordId, sectionName: sectionName },
       {
-        $set: {
-          signoff: {
+        $push: {
+          signoffs: {
             signedBy: session.user.role + ':' + session.user.name,
             signedAt: new Date(),
             comment: comment
-          },
-          updatedBy: session.user.id
-        }
+          }
+        },
+        $set: { updatedBy: session.user.id }
       },
       { new: true }
     );

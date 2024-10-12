@@ -128,6 +128,20 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
 
   return (
     <main className="flex flex-col w-full h-full">
+      {initialData.signoffs && initialData.signoffs.length > 0 && (
+        <div className="mt-4 p-4 bg-gray-100 rounded text-gray-500">
+          <h3 className="font-bold">Sign-offs</h3>
+          {initialData.signoffs.map((signoff, index) => (
+            <div key={index} className="mb-2 pb-2 border-b last:border-b-0">
+              <p>By: {signoff.signedBy}</p>
+              <p>At: {new Date(signoff.signedAt).toLocaleString()}</p>
+              {signoff.comment && (
+                <p>Comment: {signoff.comment}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
         <div className="flex-grow">
           <DataSheetGrid
@@ -138,16 +152,6 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
             headerRowHeight={90}
           />
         </div>
-        {initialData.signoff && (
-        <div className="p-4 bg-gray-100 rounded text-gray-500">
-          <h3 className="font-bold">Signed Off</h3>
-          <p>By: {initialData.signoff.signedBy}</p>
-          <p>At: {new Date(initialData.signoff.signedAt).toLocaleString()}</p>
-          {initialData.signoff.comment && (
-            <p>Comment: {initialData.signoff.comment}</p>
-          )}
-          </div>
-        )}
         <div className="flex justify-between mt-4">
           <button 
             type="submit" 
