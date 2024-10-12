@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataSheetGrid, keyColumn, textColumn, floatColumn, intColumn, dateColumn, checkboxColumn } from 'react-datasheet-grid';
 
-const MainContent = ({ initialData, onUpdate }) => {
+const MainContent = ({ initialData, onUpdate, onSignoff }) => {
   // State to hold the transformed form data
   const [formData, setFormData] = useState([]);
   // State to track form submission status
@@ -117,6 +117,11 @@ const MainContent = ({ initialData, onUpdate }) => {
     }
   };
 
+  const handleSignoff = async () => {
+    const comment = prompt("Enter a comment for this sign-off (optional):");
+    await onSignoff(comment);
+  };
+
   if (columns.length === 0) {
     return <div>Loading...</div>; // Or any loading indicator
   }
@@ -133,13 +138,30 @@ const MainContent = ({ initialData, onUpdate }) => {
             headerRowHeight={90}
           />
         </div>
-        <div className="flex justify-end mt-4">
+        {initialData.signoff && (
+        <div className="p-4 bg-gray-100 rounded text-gray-500">
+          <h3 className="font-bold">Signed Off</h3>
+          <p>By: {initialData.signoff.signedBy}</p>
+          <p>At: {new Date(initialData.signoff.signedAt).toLocaleString()}</p>
+          {initialData.signoff.comment && (
+            <p>Comment: {initialData.signoff.comment}</p>
+          )}
+          </div>
+        )}
+        <div className="flex justify-between mt-4">
           <button 
             type="submit" 
             className={`px-8 py-2 rounded ${isSubmitting ? 'bg-gray-300 cursor-not-allowed' : 'bg-teal-300'}`}
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Submitting...' : 'Submit'}
+          </button>
+          <button 
+            type="button" 
+            onClick={handleSignoff}
+            className="px-8 py-2 rounded bg-blue-300"
+          >
+            Sign Off
           </button>
         </div>
       </form>

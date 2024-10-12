@@ -84,6 +84,28 @@ export default function SectionPage({ params }) {
     }
   };
 
+  const handleSignoff = async (comment) => {
+    try {
+      const response = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}/signoff`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comment }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sign off section');
+      }
+
+      const updatedData = await response.json();
+      setBatchRecordData(updatedData);
+    } catch (error) {
+      console.error('Error signing off section:', error);
+      alert('Error signing off section');
+    }
+  };
+
   if (status === "loading" || loading) {
     return <div>Loading...</div>;
   }
@@ -94,6 +116,7 @@ export default function SectionPage({ params }) {
       batchRecordId={batchRecordId}
       session={session}
       onUpdate={updateSectionData}
+      onSignoff={handleSignoff}
     />
   );
 }
