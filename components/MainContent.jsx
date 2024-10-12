@@ -9,6 +9,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
   // State to track form submission status
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [columns, setColumns] = useState([]);
+  const [isSignedOff, setIsSignedOff] = useState(false);
 
   useEffect(() => {
     if (initialData?.fields) {
@@ -29,6 +30,8 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
         acc[field.fieldName] = maxFieldLength;
         return acc;
       }, {});
+
+      const isSignedOff = initialData.signoffs && initialData.signoffs.length > 0;
 
       const newColumns = initialData.fields.map(field => {
         let columnType;
@@ -57,6 +60,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
           ...keyColumn(field.fieldName, columnType),
           title: field.fieldName,
           minWidth: Math.max(100, maxLengths[field.fieldName] * 13),
+          disabled: isSignedOff, // Disable all fields if the section is signed off
         };
       });
 
@@ -155,15 +159,15 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
         <div className="flex justify-between mt-4">
           <button 
             type="submit" 
-            className={`px-8 py-2 rounded ${isSubmitting ? 'bg-gray-300 cursor-not-allowed' : 'bg-teal-300'}`}
-            disabled={isSubmitting}
+            className={`px-8 py-2 rounded ${isSubmitting || initialData.signoffs?.length > 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-teal-300'}`}
+            disabled={isSubmitting || initialData.signoffs?.length > 0}
           >
             {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
           <button 
             type="button" 
             onClick={handleSignoff}
-            className="px-8 py-2 rounded bg-blue-300"
+            className={`px-8 py-2 rounded bg-blue-300`}
           >
             Sign Off
           </button>
