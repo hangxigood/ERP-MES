@@ -23,7 +23,7 @@ export async function POST(req, { params }) {
       {
         $push: {
           signoffs: {
-            signedBy: session.user.role + ':' + session.user.name,
+            signedBy: session.user.role + '(' + session.user.name + ')',
             signedAt: new Date(),
             comment: comment
           }
