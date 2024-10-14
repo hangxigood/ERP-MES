@@ -11,8 +11,13 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
   const [columns, setColumns] = useState([]);
   const [isSignedOff, setIsSignedOff] = useState(false);
 
+  /**
+   * This useEffect is used to transform the initial data into a format that the DataSheetGrid can use.
+   * It also sets the columns and formData state variables.
+   */
   useEffect(() => {
     if (initialData?.fields) {
+      // Calculate the maximum number of rows based on the field values(array)
       const rowCount = Math.max(
         ...initialData.fields
           .filter(field => Array.isArray(field.fieldValue))
@@ -20,6 +25,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
         1
       );
 
+      // Calculate the maximum length of the field names and field values
       const maxLengths = initialData.fields.reduce((acc, field) => {
         const maxFieldLength = Math.max(
           field.fieldName.length,
@@ -31,8 +37,10 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
         return acc;
       }, {});
 
+      // Check if the section is signed off
       const isSignedOff = initialData.signoffs && initialData.signoffs.length > 0;
 
+      // Build the columns for the DataSheetGrid, based on the field types
       const newColumns = initialData.fields.map(field => {
         let columnType;
         switch (field.fieldType) {
