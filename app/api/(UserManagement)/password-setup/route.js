@@ -3,9 +3,29 @@ import dbConnect from '../../../../lib/mongoose';
 import User from '../../../../models/User';
 import bcrypt from 'bcrypt';
 
+
+function isPasswordSecure(password) {
+  const minLength = 5;
+  const hasLowercase = /[a-z]/.test(password);
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  return (
+    password.length >= minLength &&
+    hasLowercase &&
+    hasUppercase &&
+    hasNumber &&
+    hasSpecialChar
+  );
+}
 export async function POST(request) {
   try {
     const { token, password } = await request.json();
+
+    if (!isPasswordSecure(password)) {
+      return NextResponse.json({ error: 'Password does not meet security requirements' }, { status: 400 });
+    }
 
     await dbConnect();
 
