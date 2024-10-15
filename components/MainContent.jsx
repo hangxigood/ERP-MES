@@ -9,7 +9,7 @@ const MainContent = ({ initialData, onUpdate }) => {
   // State to track form submission status
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [columns, setColumns] = useState([]);
-
+  
   useEffect(() => {
     if (initialData?.fields) {
       const rowCount = Math.max(
@@ -81,9 +81,12 @@ const MainContent = ({ initialData, onUpdate }) => {
 
       setColumns(newColumns);
       setFormData(transformedData);
+
     } else {
       setColumns([]);
       setFormData([]);
+      setIntroText([]);
+      setSectionDescription('');
     }
   }, [initialData]);
 
@@ -124,6 +127,8 @@ const MainContent = ({ initialData, onUpdate }) => {
   return (
     <main className="flex flex-col w-full h-full">
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        
+        {/* DataSheetGrid */}
         <div className="flex-grow">
           <DataSheetGrid
             value={formData}
@@ -133,6 +138,8 @@ const MainContent = ({ initialData, onUpdate }) => {
             headerRowHeight={90}
           />
         </div>
+
+        {/* Submit Button */}
         <div className="flex justify-end mt-4">
           <button 
             type="submit" 
