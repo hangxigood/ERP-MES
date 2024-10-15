@@ -31,12 +31,13 @@ export async function GET(request, { params }) {
     // Find all batch record data sections for this batch record
     const batchRecordSections = await BatchRecordData.find({
       batchRecord: batchRecordId
-    }).select('sectionName');
+    }).select('sectionName order').sort('order');
 
     // Transform the sections data
     const sections = batchRecordSections.map(section => ({
       name: section.sectionName,
-      displayName: section.sectionName // You might want to add a displayName field to your model if it's different from sectionName
+      displayName: section.sectionName, // You might want to add a displayName field to your model if it's different from sectionName
+      order: section.order //order of the section
     }));
 
     return NextResponse.json(sections);
