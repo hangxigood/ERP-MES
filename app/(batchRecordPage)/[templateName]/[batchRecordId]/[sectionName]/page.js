@@ -18,11 +18,6 @@ export default function SectionPage({ params }) {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'LABELING')) {
-      router.push('/unauthorized');
-      return;
-    }
-
     const fetchData = async () => {
       try {
         // Ensure batchRecordId is a valid ObjectId

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import Header from '../../../components/Header';
+import Header from '../../../../components/Header';
 
 export default function EditUser() {
   const { data: session, status } = useSession();
