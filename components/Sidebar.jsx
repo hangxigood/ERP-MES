@@ -1,48 +1,39 @@
-"use client";
-
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SectionItem from './SectionItem';
 
-const Sidebar = ({ availableSections = [] }) => {
+const Sidebar = ({ availableSections }) => {
   const pathname = usePathname();
   const decodedPathname = decodeURIComponent(pathname);
   const pathSegments = decodedPathname.split('/').filter(Boolean);
   const templateName = pathSegments[0] || '';
   const batchRecordId = pathSegments[1] || '';
 
-<<<<<<< Updated upstream
+  const decodedTemplateName = decodeURIComponent(templateName);
+  const decodedBatchRecordId = decodeURIComponent(batchRecordId);
+
   const updatedSectionItems = availableSections.map(section => {
-    const fullHref = `/${templateName}/${batchRecordId}/${section.name}`;
-    const decodedFullHref = decodeURIComponent(fullHref);
+    const fullHref = `/${decodedTemplateName}/${decodedBatchRecordId}/${section.name}`;
     return {
       text: section.displayName,
       href: fullHref,
-      isActive: decodedFullHref === decodedPathname
+      isActive: fullHref === decodedPathname
     };
   });
-=======
-  const updatedSectionItems = availableSections.map(section => ({
-    text: section.displayName,
-    href: `/${templateName}/${batchRecordId}/${section.name}`,
-    isActive: `/${templateName}/${batchRecordId}/${section.name}` === decodedPathname
-  }));
->>>>>>> Stashed changes
 
   return (
-    <nav className="flex-shrink-0 w-64 bg-gray-100 border-r border-gray-200">
-      <div className="flex flex-col h-full p-4">
-        <div className="text-lg font-bold text-teal-300 mb-4">Sections</div>
-        {updatedSectionItems.length > 0 ? (
-          updatedSectionItems.map((item, index) => (
+    <nav className="flex flex-col w-[21%] max-md:ml-0 max-md:w-full">
+      <div className="flex grow gap-2.5 text-base text-black max-md:mt-10">
+        <div className="flex flex-col self-start px-5 mt-9">
+          <div className="text-lg font-bold text-teal-300">Sections</div>
+          {updatedSectionItems.map((item, index) => (
             <Link key={index} href={item.href} passHref>
               <SectionItem {...item} />
             </Link>
-          ))
-        ) : (
-          <div>No sections available</div>
-        )}
+          ))}
+        </div>
+        <div className="shrink-0 w-px border border-solid border-stone-900 h-[882px]" />
       </div>
     </nav>
   );

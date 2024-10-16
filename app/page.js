@@ -22,7 +22,7 @@ const Home = () => {
             height={89} // Adjust this based on your logo's aspect ratio
             className="object-contain self-center"
         />
-        <h1 className="my-auto">BATCH RECORD SYSTEM</h1>
+        <h1 className="my-auto">BATCH RECORD SYSTEM1</h1>
       </header>
 
       {session && (
