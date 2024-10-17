@@ -9,9 +9,10 @@ const MainContent = ({ initialData, onUpdate }) => {
   // State to track form submission status
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [columns, setColumns] = useState([]);
+  const [sectionDescription, setSectionDescription] = useState('');
   
   useEffect(() => {
-    if (initialData?.fields) {
+    if (initialData) {
       const rowCount = Math.max(
         ...initialData.fields
           .filter(field => Array.isArray(field.fieldValue))
@@ -82,11 +83,8 @@ const MainContent = ({ initialData, onUpdate }) => {
       setColumns(newColumns);
       setFormData(transformedData);
 
-    } else {
-      setColumns([]);
-      setFormData([]);
-      setIntroText([]);
-      setSectionDescription('');
+      // Set the section description
+      setSectionDescription(initialData.sectionDescription || '');
     }
   }, [initialData]);
 
@@ -126,6 +124,11 @@ const MainContent = ({ initialData, onUpdate }) => {
 
   return (
     <main className="flex flex-col w-full h-full">
+      {sectionDescription && (
+        <div className="mb-4 p-3 bg-gray-500 rounded">
+          <p className="text-base text-white">{sectionDescription}</p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
         
         {/* DataSheetGrid */}

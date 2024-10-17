@@ -94,6 +94,7 @@ export default function SectionPage({ params }) {
       batchRecordId={batchRecordId}
       session={session}
       onUpdate={updateSectionData}
+      sections={sections}
     />
   );
 }
