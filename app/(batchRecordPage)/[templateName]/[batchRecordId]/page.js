@@ -12,12 +12,6 @@ export default function BatchRecordPage({ params }) {
 
   useEffect(() => {
     if (status === "loading") return;
-
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'LABELING')) {
-      router.push('/unauthorized');
-      return;
-    }
-
     // Redirect to the Header section
     router.push(`/${templateName}/${batchRecordId}/Header`);
   }, [session, status, router, templateName, batchRecordId]);
