@@ -18,7 +18,8 @@ const Sidebar = ({ availableSections }) => {
     return {
       text: section.displayName,
       href: fullHref,
-      isActive: fullHref === decodedPathname
+      isActive: fullHref === decodedPathname,
+      isSigned: section.isSigned
     };
   });
 

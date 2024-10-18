@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DataSheetGrid, keyColumn, textColumn, floatColumn, intColumn, dateColumn, checkboxColumn } from 'react-datasheet-grid';
 import PasswordModal from './PasswordModal';
+import { useContext } from 'react';
+import { RefreshContext } from '../app/(batchRecordPage)/[templateName]/[batchRecordId]/[sectionName]/layout';
 
 const MainContent = ({ initialData, onUpdate, onSignoff }) => {
   // State to hold the transformed form data
@@ -12,6 +14,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
   const [columns, setColumns] = useState([]);
   const [isSignedOff, setIsSignedOff] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const { setRefreshTrigger } = useContext(RefreshContext);
 
   // Build the columns for the DataSheetGrid, based on the field types
   const createColumns = useCallback((fields, isSignedOff) => {
@@ -161,6 +164,8 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
         if (response.ok) {
           await onSignoff(comment);
           setShowPasswordModal(false);
+          // Trigger a refresh of the sidebar
+          setRefreshTrigger(prev => prev + 1);
         } else {
           alert('Password verification failed. Please try again.');
         }
