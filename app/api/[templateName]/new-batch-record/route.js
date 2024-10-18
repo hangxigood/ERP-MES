@@ -47,7 +47,6 @@ export async function POST(request, { params }) {
         console.error('Invalid section structure:', section);
         return NextResponse.json({ error: 'Invalid section structure' }, { status: 400 });
       }
-      console.log("Processing section:", section);
 
       try {
         const fields = section.fields.map(field => ({
@@ -64,7 +63,7 @@ export async function POST(request, { params }) {
           createdBy: session.user.id,
           updatedBy: session.user.id
         });
-        console.log("Saving new batch record data:", newBatchRecordData);
+
         await newBatchRecordData.save();
         console.log("Saving successful");
         batchRecordDataIds.push(newBatchRecordData._id);

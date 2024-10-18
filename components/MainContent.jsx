@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { DataSheetGrid, keyColumn, textColumn, floatColumn, intColumn, dateColumn, checkboxColumn } from 'react-datasheet-grid';
+import PasswordModal from './PasswordModal';
 
 const MainContent = ({ initialData, onUpdate, onSignoff }) => {
   // State to hold the transformed form data
@@ -10,6 +11,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [columns, setColumns] = useState([]);
   const [isSignedOff, setIsSignedOff] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   // Build the columns for the DataSheetGrid, based on the field types
   const createColumns = useCallback((fields, isSignedOff) => {
@@ -141,9 +143,34 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
     }
   };
 
-  const handleSignoff = async () => {
-    const comment = prompt("Enter a comment for this sign-off (optional):");
-    await onSignoff(comment);
+  const handleSignoff = () => {
+    setShowPasswordModal(true);
+  };
+
+  const handlePasswordSubmit = async (password, comment) => {
+    if (password) {
+      try {
+        const response = await fetch('/api/verify-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ password }),
+        });
+
+        if (response.ok) {
+          await onSignoff(comment);
+          setShowPasswordModal(false);
+        } else {
+          alert('Password verification failed. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error verifying password:', error);
+        alert('An error occurred while verifying your password. Please try again.');
+      }
+    } else {
+      alert('Password is required for sign-off.');
+    }
   };
 
   if (columns.length === 0) {
@@ -197,6 +224,13 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
           </button>
         </div>
       </form>
+      
+      {showPasswordModal && (
+        <PasswordModal
+          onClose={() => setShowPasswordModal(false)}
+          onSubmit={handlePasswordSubmit}
+        />
+      )}
     </main>
   );
 };
