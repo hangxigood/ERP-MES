@@ -59,11 +59,12 @@ export async function POST(request, { params }) {
 
     const { data, status } = await request.json();
 
-    // Find and update the specific section data
+    // Update the section data only if it hasn't been signed off
     const updatedSectionData = await BatchRecordData.findOneAndUpdate(
       {
         batchRecord: batchRecordId,
-        sectionName: sectionName
+        sectionName: sectionName,
+        signoffs: { $size: 0 }  // This ensures the signoffs array is empty
       },
       {
         $set: {
@@ -76,7 +77,7 @@ export async function POST(request, { params }) {
     );
 
     if (!updatedSectionData) {
-      return NextResponse.json({ error: 'Section data not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Section data not found or has been signed off' }, { status: 403 });
     }
 
     return NextResponse.json(updatedSectionData);
@@ -86,4 +87,3 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
