@@ -29,9 +29,7 @@ export default function BatchRecordLayout({ children, params }) {
           throw new Error('Failed to fetch sections');
         }
         const sectionsData = await response.json();
-        // Sort sections by order
-        const sortedSections = sectionsData.sort((a, b) => a.order - b.order);
-        setSections(sortedSections);
+        setSections(sectionsData);
       } catch (error) {
         console.error('Error fetching sections:', error);
       }
