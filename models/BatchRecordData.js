@@ -10,6 +10,7 @@ const batchRecordDataSchema = new mongoose.Schema({
   batchRecord: { type: mongoose.Schema.Types.ObjectId, ref: 'BatchRecord', required: true },
   sectionName: { type: String, required: true },
   status: { type: String, required: true },
+  order: { type: Number, required: true }, //section order
   fields: [fieldSchema],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
