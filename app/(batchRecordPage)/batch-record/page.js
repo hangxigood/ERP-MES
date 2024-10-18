@@ -15,11 +15,6 @@ export default function BatchRecordsList() {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'LABELING')) {
-      router.push('/unauthorized');
-      return;
-    }
-
     fetchBatchRecords();
   }, [session, status, router]);
 

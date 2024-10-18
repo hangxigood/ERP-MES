@@ -17,11 +17,6 @@ export default function BatchRecordLayout({ children, params }) {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'LABELING')) {
-      router.push('/unauthorized');
-      return;
-    }
-
     const fetchSections = async () => {
       try {
         const response = await fetch(`/api/${decodedTemplateName}/${decodedBatchRecordId}/sections`);
