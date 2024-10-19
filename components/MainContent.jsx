@@ -160,6 +160,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
         <div className="mb-4 p-3 bg-gray-500 rounded">
           <p className="text-base text-white">{sectionDescription}</p>
         </div>
+      )}
       {initialData.signoffs && initialData.signoffs.length > 0 && (
         <div className="mt-4 p-4 bg-gray-100 rounded text-gray-500">
           <h3 className="font-bold">Sign-offs</h3>
