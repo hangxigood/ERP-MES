@@ -18,11 +18,6 @@ export default function SectionPage({ params }) {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'LABELING')) {
-      router.push('/unauthorized');
-      return;
-    }
-
     const fetchData = async () => {
       try {
         // Ensure batchRecordId is a valid ObjectId
@@ -84,6 +79,28 @@ export default function SectionPage({ params }) {
     }
   };
 
+  const handleSignoff = async (comment) => {
+    try {
+      const response = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}/signoff`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comment }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sign off section');
+      }
+
+      const updatedData = await response.json();
+      setBatchRecordData(updatedData);
+    } catch (error) {
+      console.error('Error signing off section:', error);
+      alert('Error signing off section');
+    }
+  };
+
   if (status === "loading" || loading) {
     return <div>Loading...</div>;
   }
@@ -95,6 +112,7 @@ export default function SectionPage({ params }) {
       session={session}
       onUpdate={updateSectionData}
       sections={sections}
+      onSignoff={handleSignoff}
     />
   );
 }
