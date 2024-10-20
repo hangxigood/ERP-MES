@@ -107,8 +107,10 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
       setColumns(newColumns);
       setFormData(transformedData);
 
-      // Set the section description
+      // Set the section description directly
       setSectionDescription(initialData.sectionDescription || '');
+
+      // Check if the section is signed off
       setIsSignedOff(newIsSignedOff);
     } else {
       setColumns([]);
@@ -158,7 +160,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
     <main className="flex flex-col w-full h-full">
       {sectionDescription && (
         <div className="mb-4 p-3 bg-gray-500 rounded">
-          <p className="text-base text-white">{sectionDescription}</p>
+          <p className="text-base text-white whitespace-pre-line">{sectionDescription}</p>
         </div>
       )}
       {initialData.signoffs && initialData.signoffs.length > 0 && (
