@@ -12,6 +12,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
   // State to track form submission status
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [columns, setColumns] = useState([]);
+  const [sectionDescription, setSectionDescription] = useState('');
   const [isSignedOff, setIsSignedOff] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const { setRefreshTrigger } = useContext(RefreshContext);
@@ -110,6 +111,11 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
 
       setColumns(newColumns);
       setFormData(transformedData);
+
+      // Set the section description directly
+      setSectionDescription(initialData.sectionDescription || '');
+
+      // Check if the section is signed off
       setIsSignedOff(newIsSignedOff);
     } else {
       setColumns([]);
@@ -184,6 +190,11 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
 
   return (
     <main className="flex flex-col w-full h-full">
+      {sectionDescription && (
+        <div className="mb-4 p-3 bg-gray-500 rounded">
+          <p className="text-base text-white whitespace-pre-line">{sectionDescription}</p>
+        </div>
+      )}
       {initialData.signoffs && initialData.signoffs.length > 0 && (
         <div className="mt-4 p-4 bg-gray-100 rounded text-gray-500">
           <h3 className="font-bold">Sign-offs</h3>
@@ -237,7 +248,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
         />
       )}
     </main>
-  );
-};
+  )
+}
 
 export default MainContent;

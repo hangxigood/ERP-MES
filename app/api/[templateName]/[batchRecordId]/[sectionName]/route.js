@@ -39,7 +39,15 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Batch record data not found for the specified section' }, { status: 404 });
     }
 
-    return NextResponse.json(batchRecordData);
+    // Fetch the template to get the sectionDescription
+    const batchRecordWithTemplate = await BatchRecord.findById(decodedBatchRecordId).populate('template');
+    const templateSection = batchRecordWithTemplate.template.structure.find(section => section.sectionName === sectionName);
+    const sectionDescription = templateSection ? templateSection.sectionDescription : '';
+
+    return NextResponse.json({
+      ...batchRecordData.toObject(),
+      sectionDescription
+    });
   } catch (error) {
     console.error('Error fetching batch record section data:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
