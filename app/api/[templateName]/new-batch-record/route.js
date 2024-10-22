@@ -59,6 +59,7 @@ export async function POST(request, { params }) {
         const newBatchRecordData = new BatchRecordData({
           batchRecord: newBatchRecord._id,
           sectionName: section.sectionName,
+          order: section.order, // section order
           status: 'Not Started',
           fields: fields,
           createdBy: session.user.id,

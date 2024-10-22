@@ -85,8 +85,6 @@ const MainContent = ({ initialData, onUpdate }) => {
     } else {
       setColumns([]);
       setFormData([]);
-      setIntroText([]);
-      setSectionDescription('');
     }
   }, [initialData]);
 
