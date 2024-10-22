@@ -2,15 +2,15 @@ import mongoose from 'mongoose';
 
 const fieldSchema = new mongoose.Schema({
   fieldName: { type: String, required: true },
-  fieldValue: { type: mongoose.Schema.Types.Mixed, required: false, default: null },
-  fieldType: { type: String, enum: ['text', 'float', 'int', 'date', 'checkbox'] }
+  fieldValue: { type: mongoose.Schema.Types.Mixed },
+  fieldType: { type: String, required: true, enum: ['text', 'float', 'int', 'date', 'checkbox'] }
 }, { _id: false });
 
 const batchRecordDataSchema = new mongoose.Schema({
   batchRecord: { type: mongoose.Schema.Types.ObjectId, ref: 'BatchRecord', required: true },
   sectionName: { type: String, required: true },
-  status: { type: String, required: true },
-  order: { type: Number, required: true }, //section order
+  order: { type: Number, required: true }, // Section order
+  status: { type: String, required: true, enum: ['Not Started', 'In Progress', 'Completed'] },
   fields: [fieldSchema],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
