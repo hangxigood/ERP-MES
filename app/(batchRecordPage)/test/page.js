@@ -7,12 +7,14 @@ import {
   textColumn,
   keyColumn,
 } from 'react-datasheet-grid'
+import { useSession } from 'next-auth/react'
 
 // Make sure to import the styles in your app
 // import 'react-datasheet-grid/dist/style.css'
 
 function VerificationCell({ rowData, setRowData }) {
   const [isVerifying, setIsVerifying] = useState(false);
+  const { data: session } = useSession();
 
   const handleClick = () => {
     if (!rowData.componentVerified) {
@@ -20,11 +22,26 @@ function VerificationCell({ rowData, setRowData }) {
     }
   };
 
-  const handleVerify = (password) => {
-    // Replace this with your actual password verification logic
-    if (password === 'correctpassword') {
-      // Replace 'User Name' with the actual user's name
-      setRowData({ ...rowData, componentVerified: 'User Name' });
+  const handleVerify = async (password) => {
+    try {
+      const response = await fetch('/api/verify-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      if (response.ok) {
+        const userName = session?.user?.name || 'Verified User';
+        setRowData({ ...rowData, componentVerified: userName });
+      } else {
+        // Handle incorrect password
+        alert('Invalid password. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error verifying password:', error);
+      alert('An error occurred while verifying the password.');
     }
     setIsVerifying(false);
   };
@@ -64,25 +81,27 @@ function PasswordPrompt({ onVerify, onCancel }) {
 
 export default function Example() {
   const [data, setData] = useState([
-    { part: '2288-PT-10', description: 'OM2 Mask', quantityRequired: 1},
-    { part: '2288-PT-10', description: 'OM2 Mask', quantityRequired: 1},
-    { part: '2312-PT-42', description: 'Oxy II EtCO2 Adult Subassembly SLM 15', quantityRequired: 1},
+    { part: '2288-PT-10', description: 'OM2 Mask', quantityRequired: 1, componentVerified: null },
+    { part: '2288-PT-10', description: 'OM2 Mask', quantityRequired: 1, componentVerified: null },
+    { part: '2312-PT-42', description: 'Oxy II EtCO2 Adult Subassembly SLM 15', quantityRequired: 1, componentVerified: null },
   ]);
 
+  const disableSignedRow = ({ rowData }) => rowData.componentVerified !== null;
+
   const columns = [
-    { ...keyColumn('part', textColumn), title: 'Part', disabled: true },
-    { ...keyColumn('description', textColumn), title: 'Description', disabled: true },
-    { ...keyColumn('quantityRequired', intColumn), title: 'Quantity Required', disabled: true },
+    { ...keyColumn('part', textColumn), title: 'Part', disabled: disableSignedRow },
+    { ...keyColumn('description', textColumn), title: 'Description', disabled: disableSignedRow },
+    { ...keyColumn('quantityRequired', intColumn), title: 'Quantity Required', disabled: disableSignedRow },
+    { ...keyColumn('lotUsed', intColumn), title: 'Lot Used', disabled: disableSignedRow },
+    { ...keyColumn('lotQtyUsed', intColumn), title: 'Lot Qty. Used', disabled: disableSignedRow },
+    { ...keyColumn('scrapQty', intColumn), title: 'Scrap Qty. (must be identified by lot)', disabled: disableSignedRow },
     { 
-      ...keyColumn('componentVerified', textColumn),
-      title: 'Component Verified to be Correct',
+      ...keyColumn('documentedBy', textColumn), 
+      title: 'Documented By:', 
       component: VerificationCell,
+      // The verification cell should always be enabled
+      disabled: false
     },
-    { ...keyColumn('lotUsed', intColumn), title: 'Lot Used'},
-    { ...keyColumn('lotQtyUsed', intColumn), title: 'Lot Qty. Used'},
-    { ...keyColumn('scrapQty', intColumn), title: 'Scrap Qty. (must be identified by lot)'},
-    { ...keyColumn('documentedBy', textColumn), title: 'Documented By:', 
-      component: VerificationCell,},
   ];
 
   return (
