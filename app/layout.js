@@ -1,9 +1,8 @@
 import { Inter } from "next/font/google";
 import { SessionProviderWrapper } from "../components/SessionProviderWrapper";
-
 import "./globals.css";
 import 'react-datasheet-grid/dist/style.css'
-
+import { initChangeStreams } from '../lib/changeStreamInit';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -12,13 +11,15 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  return (
+  initChangeStreams();
+
+  return (  
     <html lang="en">
       <body className={inter.className}>
         <SessionProviderWrapper>
           {children}
         </SessionProviderWrapper>
-        </body>
+      </body>
     </html>
   );
 }
