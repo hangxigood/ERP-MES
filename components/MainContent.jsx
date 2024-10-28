@@ -7,7 +7,7 @@ import { useContext } from 'react';
 import { RefreshContext } from '../app/(batchRecordPage)/[templateName]/[batchRecordId]/[sectionName]/layout';
 import { useRouter } from 'next/navigation';
 
-const MainContent = ({ initialData, batchRecordId, templateName, sectionName, onUpdate, onSignoff }) => {
+const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateName, batchRecordId }) => {
   // State to hold the transformed form data
   const [formData, setFormData] = useState([]);
   // State to track form submission status
@@ -204,7 +204,10 @@ const MainContent = ({ initialData, batchRecordId, templateName, sectionName, on
   };
 
   const handleDelete = async () => {
-    if (!initialData.isDuplicate) return;
+    if (!initialData.isDuplicate) {
+      alert('Cannot delete the main section');
+      return;
+    }
     
     try {
       const response = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}`, {
@@ -215,7 +218,9 @@ const MainContent = ({ initialData, batchRecordId, templateName, sectionName, on
         throw new Error('Failed to delete section');
       }
 
-      router.back();
+      // Navigate back to the main section
+      const mainSectionName = sectionName.split(' ')[0];
+      router.push(`/${templateName}/${batchRecordId}/${mainSectionName}`);
       setRefreshTrigger(prev => prev + 1);
     } catch (error) {
       console.error('Error deleting section:', error);

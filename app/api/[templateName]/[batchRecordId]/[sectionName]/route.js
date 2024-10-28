@@ -112,6 +112,10 @@ export async function DELETE(request, { params }) {
       sectionName: sectionName
     });
 
+    if (!section) {
+      return NextResponse.json({ error: 'Section not found' }, { status: 404 });
+    }
+
     if (!section.isDuplicate) {
       return NextResponse.json({ error: 'Cannot delete original section' }, { status: 403 });
     }

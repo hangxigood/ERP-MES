@@ -3,6 +3,7 @@ import dbConnect from '../../../../../../lib/mongoose';
 import BatchRecordData from '../../../../../../models/BatchRecordData';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../../../lib/authOptions";
+import BatchRecord from '../../../../../../models/BatchRecord';
 
 export async function POST(request, { params }) {
   try {
@@ -29,20 +30,21 @@ export async function POST(request, { params }) {
       newSectionName = `${sectionName} 2`;
     }
 
-    // Get the original section data
-    const originalSection = await BatchRecordData.findOne({
-      batchRecord: batchRecordId,
-      sectionName: sectionName
-    });
+    // Get the template section structure
+    const batchRecord = await BatchRecord.findById(batchRecordId).populate('template');
+    const templateSection = batchRecord.template.structure.find(
+      section => section.sectionName === sectionName
+    );
 
-    // Create new section with copied values from original
+    // Create new section from template structure
     const newSection = new BatchRecordData({
       batchRecord: batchRecordId,
       sectionName: newSectionName,
       status: 'pending',
-      fields: originalSection.fields.map(field => ({
-        ...field,
-        fieldValue: Array.isArray(field.fieldValue) ? Array(field.fieldValue.length).fill('') : ''
+      fields: templateSection.fields.map(field => ({
+        fieldName: field.name,
+        fieldType: field.fieldType,
+        fieldValue: Array.isArray(field.default) ? field.default : [field.default || '']
       })),
       createdBy: session.user.id,
       updatedBy: session.user.id,
