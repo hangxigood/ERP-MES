@@ -54,7 +54,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
   }, []);
 
   // Calculate the maximum length of the field names and field values
-  const maxLengths = initialData.fields.reduce((acc, field) => {
+  const maxLengths = initialData?.fields?.reduce((acc, field) => {
     const maxFieldLength = Math.max(
       field.fieldName.length,
       ...(Array.isArray(field.fieldValue) 
@@ -63,67 +63,64 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
     );
     acc[field.fieldName] = maxFieldLength;
     return acc;
-  }, {});
+  }, {}) || {};
 
   /**
    * This useEffect is used to transform the initial data into a format that the DataSheetGrid can use.
    * It also sets the columns and formData state variables.
    */
   useEffect(() => {
-   
-    if (initialData?.fields) {
-      // Calculate the maximum number of rows based on the field values(array)
-      const rowCount = Math.max(
-        ...initialData.fields
-          .filter(field => Array.isArray(field.fieldValue))
-          .map(field => field.fieldValue.length),
-        1
-      );
-
-      // Check if the section is signed off
-      const newIsSignedOff = initialData.signoffs && initialData.signoffs.length > 0;
-
-      const newColumns = createColumns(initialData.fields, newIsSignedOff);
-
-      /**
-       * This code transforms the initial data into a format that the DataSheetGrid can use.
-       * It creates a new row for each field value array and sets the field value for each row.
-       * If the field value is a checkbox, it sets the field value to 'true' or 'false'.
-       * If the field value is a date, it sets the field value to a Date object.
-       * Otherwise, it sets the field value to the field value itself.
-         */
-      const transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
-        const rowData = { id: `row_${rowIndex}` };
-        initialData.fields.forEach(field => {
-          if (field.fieldType === 'checkbox') {
-            rowData[field.fieldName] = Array.isArray(field.fieldValue) 
-              ? (field.fieldValue[rowIndex] === 'true' || field.fieldValue[rowIndex] === true)
-              : (field.fieldValue === 'true' || field.fieldValue === true);
-          } else if (field.fieldType === 'date') {
-            const dateValue = Array.isArray(field.fieldValue) ? field.fieldValue[rowIndex] : field.fieldValue;
-            rowData[field.fieldName] = dateValue ? new Date(dateValue) : null;
-          } else {
-            rowData[field.fieldName] = Array.isArray(field.fieldValue) 
-              ? (field.fieldValue[rowIndex] ?? '')
-              : (field.fieldValue ?? '');
-          }
-        });
-        return rowData;
-      });
-
-      setColumns(newColumns);
-      setFormData(transformedData);
-
-      // Set the section description directly
-      setSectionDescription(initialData.sectionDescription || '');
-
-      // Check if the section is signed off
-      setIsSignedOff(newIsSignedOff);
-    } else {
+    // Add null check at the start of useEffect
+    if (!initialData?.fields) {
       setColumns([]);
       setFormData([]);
       setIsSignedOff(false);
+      return;
     }
+
+    // Calculate the maximum number of rows based on the field values(array)
+    const rowCount = Math.max(
+      ...initialData.fields
+        .filter(field => Array.isArray(field.fieldValue))
+        .map(field => field.fieldValue.length),
+      1
+    );
+
+    // Check if the section is signed off
+    const newIsSignedOff = initialData.signoffs && initialData.signoffs.length > 0;
+
+    const newColumns = createColumns(initialData.fields, newIsSignedOff);
+
+    /**
+     * This code transforms the initial data into a format that the DataSheetGrid can use.
+     * It creates a new row for each field value array and sets the field value for each row.
+     * If the field value is a checkbox, it sets the field value to 'true' or 'false'.
+     * If the field value is a date, it sets the field value to a Date object.
+     * Otherwise, it sets the field value to the field value itself.
+       */
+    const transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
+      const rowData = { id: `row_${rowIndex}` };
+      initialData.fields.forEach(field => {
+        if (field.fieldType === 'checkbox') {
+          rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+            ? (field.fieldValue[rowIndex] === 'true' || field.fieldValue[rowIndex] === true)
+            : (field.fieldValue === 'true' || field.fieldValue === true);
+        } else if (field.fieldType === 'date') {
+          const dateValue = Array.isArray(field.fieldValue) ? field.fieldValue[rowIndex] : field.fieldValue;
+          rowData[field.fieldName] = dateValue ? new Date(dateValue) : null;
+        } else {
+          rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+            ? (field.fieldValue[rowIndex] ?? '')
+            : (field.fieldValue ?? '');
+        }
+      });
+      return rowData;
+    });
+
+    setColumns(newColumns);
+    setFormData(transformedData);
+    setSectionDescription(initialData.sectionDescription || '');
+    setIsSignedOff(newIsSignedOff);
   }, [initialData, createColumns]);
 
   // Handle form submission

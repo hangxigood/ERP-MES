@@ -31,7 +31,8 @@ export async function GET(request, { params }) {
     // Find all batch record data sections for this batch record
     const batchRecordSections = await BatchRecordData.find({
       batchRecord: batchRecordId
-    }).select('sectionName signoffs order').sort('order');
+    }).select('sectionName signoffs order')
+      .sort({ order: 1 });
 
     // Transform the sections data
     const sections = batchRecordSections.map(section => ({
@@ -40,6 +41,12 @@ export async function GET(request, { params }) {
       isSigned: section.signoffs && section.signoffs.length > 0,
       order: section.order
     }));
+
+    // Add debug logging
+    console.log('Sections with order:', sections.map(s => ({
+      name: s.name,
+      order: s.order
+    })));
 
     return NextResponse.json(sections);
   } catch (error) {

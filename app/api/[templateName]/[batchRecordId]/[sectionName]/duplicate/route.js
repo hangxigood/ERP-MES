@@ -16,6 +16,25 @@ export async function POST(request, { params }) {
 
     const { batchRecordId, sectionName } = params;
 
+    // Get the original section
+    const originalSection = await BatchRecordData.findOne({
+      batchRecord: batchRecordId,
+      sectionName: sectionName
+    });
+
+    // Find all sections with higher order than the original
+    const sectionsToUpdate = await BatchRecordData.find({
+      batchRecord: batchRecordId,
+      order: { $gt: originalSection.order }
+    }).sort({ order: 1 });
+
+    // Shift all subsequent sections up by 1
+    for (const section of sectionsToUpdate) {
+      await BatchRecordData.findByIdAndUpdate(section._id, {
+        $inc: { order: 1 }
+      });
+    }
+
     // Find existing duplicates to determine the next number
     const existingSections = await BatchRecordData.find({
       batchRecord: batchRecordId,
@@ -40,12 +59,14 @@ export async function POST(request, { params }) {
     const newSection = new BatchRecordData({
       batchRecord: batchRecordId,
       sectionName: newSectionName,
-      status: 'pending',
+      status: 'Not Started',
+      order: originalSection.order + 1,
       fields: templateSection.fields.map(field => ({
         fieldName: field.name,
         fieldType: field.fieldType,
         fieldValue: Array.isArray(field.default) ? field.default : [field.default || '']
       })),
+      sectionDescription: templateSection.sectionDescription,
       createdBy: session.user.id,
       updatedBy: session.user.id,
       isDuplicate: true

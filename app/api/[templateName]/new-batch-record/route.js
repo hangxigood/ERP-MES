@@ -42,7 +42,8 @@ export async function POST(request, { params }) {
 
     // Create batch record data for each section in the template
     const batchRecordDataIds = [];
-    for (const section of template.structure) {
+    for (let i = 0; i < template.structure.length; i++) {
+      const section = template.structure[i];
       if (!section.sectionName || !Array.isArray(section.fields)) {
         console.error('Invalid section structure:', section);
         return NextResponse.json({ error: 'Invalid section structure' }, { status: 400 });
@@ -58,15 +59,16 @@ export async function POST(request, { params }) {
         const newBatchRecordData = new BatchRecordData({
           batchRecord: newBatchRecord._id,
           sectionName: section.sectionName,
-          order: section.order, // section order
+          order: section.order || i + 1,
           status: 'Not Started',
           fields: fields,
           createdBy: session.user.id,
-          updatedBy: session.user.id
+          updatedBy: session.user.id,
+          sectionDescription: section.sectionDescription
         });
 
         await newBatchRecordData.save();
-        console.log("Saving successful");
+        console.log("Saving successful with order:", newBatchRecordData.order);
         batchRecordDataIds.push(newBatchRecordData._id);
       } catch (error) {
         console.error('Error creating batch record data:', error);
