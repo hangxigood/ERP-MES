@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Header from "../../../../../components/Header";
+import { useSession } from "next-auth/react";
+import { useRouter } from 'next/navigation';
 import Sidebar from "../../../../../components/Sidebar";
 import { createContext, useContext } from 'react';
 
@@ -10,14 +12,17 @@ import { createContext, useContext } from 'react';
 export const RefreshContext = createContext();
 
 export default function BatchRecordLayout({ children }) {
+  const router = useRouter();
+  const { data: session, status } = useSession();
   const params = useParams();
   const templateName = params.templateName;
   const batchRecordId = params.batchRecordId;
-
   const [availableSections, setAvailableSections] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
+    if (status === "loading") return;
+
     const fetchSections = async () => {
       try {
         const response = await fetch(`/api/${templateName}/${batchRecordId}/sections`);
@@ -25,7 +30,9 @@ export default function BatchRecordLayout({ children }) {
           throw new Error('Failed to fetch sections');
         }
         const sectionsData = await response.json();
-        setAvailableSections(sectionsData);
+        // Sort the sections based on the order field
+        const sortedSections = sectionsData.sort((a, b) => a.order - b.order);
+        setAvailableSections(sortedSections);
       } catch (error) {
         console.error('Error fetching sections:', error);
       }
