@@ -95,3 +95,39 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+export async function DELETE(request, { params }) {
+  try {
+    await dbConnect();
+
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { batchRecordId, sectionName } = params;
+
+    const section = await BatchRecordData.findOne({
+      batchRecord: batchRecordId,
+      sectionName: sectionName
+    });
+
+    if (!section) {
+      return NextResponse.json({ error: 'Section not found' }, { status: 404 });
+    }
+
+    if (!section.isDuplicate) {
+      return NextResponse.json({ error: 'Cannot delete original section' }, { status: 403 });
+    }
+
+    await BatchRecordData.deleteOne({
+      batchRecord: batchRecordId,
+      sectionName: sectionName
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting section:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}

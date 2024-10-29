@@ -108,8 +108,10 @@ export default function SectionPage({ params }) {
   return (
     <MainContent
       initialData={batchRecordData}
-      batchRecordId={batchRecordId}
       session={session}
+      batchRecordId={decodedBatchRecordId}
+      templateName={decodedTemplateName}
+      sectionName={sectionName}
       onUpdate={updateSectionData}
       sections={sections}
       onSignoff={handleSignoff}

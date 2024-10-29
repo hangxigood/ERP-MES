@@ -5,8 +5,9 @@ import { DataSheetGrid, keyColumn, textColumn, floatColumn, intColumn, dateColum
 import PasswordModal from './PasswordModal';
 import { useContext } from 'react';
 import { RefreshContext } from '../app/(batchRecordPage)/[templateName]/[batchRecordId]/[sectionName]/layout';
+import { useRouter } from 'next/navigation';
 
-const MainContent = ({ initialData, onUpdate, onSignoff }) => {
+const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateName, batchRecordId }) => {
   // State to hold the transformed form data
   const [formData, setFormData] = useState([]);
   // State to track form submission status
@@ -16,6 +17,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
   const [isSignedOff, setIsSignedOff] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const { setRefreshTrigger } = useContext(RefreshContext);
+  const router = useRouter();
 
   // Build the columns for the DataSheetGrid, based on the field types
   const createColumns = useCallback((fields, isSignedOff) => {
@@ -184,6 +186,48 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
     }
   };
 
+  const handleDuplicate = async () => {
+    try {
+      const response = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}/duplicate`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to duplicate section');
+      }
+
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      console.error('Error duplicating section:', error);
+      alert('Error duplicating section');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!initialData.isDuplicate) {
+      alert('Cannot delete the main section');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete section');
+      }
+
+      // Navigate back to the main section
+      const mainSectionName = sectionName.split(' ')[0];
+      router.push(`/${templateName}/${batchRecordId}/${mainSectionName}`);
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      console.error('Error deleting section:', error);
+      alert('Error deleting section');
+    }
+  };
+
   if (columns.length === 0) {
     return <div>Loading...</div>; // Or any loading indicator
   }
@@ -224,20 +268,47 @@ const MainContent = ({ initialData, onUpdate, onSignoff }) => {
           />
         </div>
         <div className="flex justify-between mt-4">
-          <button 
-            type="submit" 
-            className={`px-8 py-2 rounded ${isSubmitting || initialData.signoffs?.length > 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-teal-300'}`}
-            disabled={isSubmitting || initialData.signoffs?.length > 0}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </button>
-          <button 
-            type="button" 
-            onClick={handleSignoff}
-            className={`px-8 py-2 rounded bg-blue-300`}
-          >
-            Sign Off
-          </button>
+          <div className="flex gap-2">
+            <button 
+              type="button"
+              onClick={handleDuplicate}
+              className="px-4 py-2 rounded bg-teal-300 hover:bg-teal-400"
+            >
+              +
+            </button>
+            <button 
+              type="button"
+              onClick={handleDelete}
+              disabled={!initialData.isDuplicate}
+              className={`px-4 py-2 rounded ${
+                initialData.isDuplicate 
+                  ? 'bg-red-300 hover:bg-red-400' 
+                  : 'bg-gray-300 cursor-not-allowed'
+              }`}
+            >
+              -
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <button 
+              type="submit" 
+              className={`px-8 py-2 rounded ${
+                isSubmitting || initialData.signoffs?.length > 0 
+                  ? 'bg-gray-300 cursor-not-allowed' 
+                  : 'bg-teal-300 hover:bg-teal-400'
+              }`}
+              disabled={isSubmitting || initialData.signoffs?.length > 0}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </button>
+            <button 
+              type="button" 
+              onClick={handleSignoff}
+              className="px-8 py-2 rounded bg-blue-300 hover:bg-blue-400"
+            >
+              Sign Off
+            </button>
+          </div>
         </div>
       </form>
       
