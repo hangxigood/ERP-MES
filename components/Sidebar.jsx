@@ -16,7 +16,8 @@ const Sidebar = ({ availableSections = [] }) => {
   const updatedSectionItems = availableSections.map(section => ({
     text: section.displayName,
     href: `/${templateName}/${batchRecordId}/${section.name}`,
-    isActive: `/${templateName}/${batchRecordId}/${section.name}` === decodedPathname
+    isActive: `/${templateName}/${batchRecordId}/${section.name}` === decodedPathname,
+    isSigned: section.isSigned
   }));
 
   useEffect(() => {

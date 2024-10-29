@@ -13,7 +13,12 @@ const batchRecordDataSchema = new mongoose.Schema({
   status: { type: String, required: true, enum: ['Not Started', 'In Progress', 'Completed'] },
   fields: [fieldSchema],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+  updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  signoffs: [{
+    signedBy: { type: String },
+    signedAt: { type: Date },
+    comment: { type: String }
+  }]
 }, { timestamps: true });
 
 batchRecordDataSchema.index({ batchRecord: 1, sectionName: 1 }, { unique: true });
@@ -21,3 +26,4 @@ batchRecordDataSchema.index({ batchRecord: 1, sectionName: 1 }, { unique: true }
 const BatchRecordData = mongoose.models.BatchRecordData || mongoose.model('BatchRecordData', batchRecordDataSchema);
 
 export default BatchRecordData;
+
