@@ -17,7 +17,8 @@ const batchRecordDataSchema = new mongoose.Schema({
     signedBy: { type: String },
     signedAt: { type: Date },
     comment: { type: String }
-  }]
+  }],
+  isDuplicate: { type: Boolean, default: false }
 }, { timestamps: true });
 
 batchRecordDataSchema.index({ batchRecord: 1, sectionName: 1 }, { unique: true });
