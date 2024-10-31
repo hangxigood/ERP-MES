@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { addAuditLogMiddleware } from './AuditLog';
 
 const fieldSchema = new mongoose.Schema({
   fieldName: { type: String, required: true },
@@ -21,6 +22,9 @@ const batchRecordDataSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 batchRecordDataSchema.index({ batchRecord: 1, sectionName: 1 }, { unique: true });
+
+// Add the audit log middleware
+addAuditLogMiddleware(batchRecordDataSchema);
 
 const BatchRecordData = mongoose.models.BatchRecordData || mongoose.model('BatchRecordData', batchRecordDataSchema);
 
