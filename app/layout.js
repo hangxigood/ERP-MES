@@ -11,7 +11,7 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  initChangeStreams();
+  // initChangeStreams(); // Initialize change streams of mongoDB
 
   return (  
     <html lang="en">
