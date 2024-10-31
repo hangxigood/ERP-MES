@@ -69,20 +69,29 @@ export default function AuditLogViewer() {
       return <span className="text-red-600">Document deleted</span>;
     }
 
-    if (log.changes) {
+    if (log.updateDescription?.fields) {
       return (
         <div className="space-y-2">
-          {log.changes.map((change, index) => (
-            <div key={index} className="border-l-4 border-blue-500 pl-2">
-              <div className="font-semibold">{change.fieldName}</div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-red-500">Old:</span>{' '}
-                  {JSON.stringify(change.oldValue)}
-                </div>
-                <div>
-                  <span className="text-green-500">New:</span>{' '}
-                  {JSON.stringify(change.newValue)}
+          {log.updateDescription.fields.map((change, index) => (
+            <div key={index} className="border-l-4 border-blue-500 pl-2 py-1">
+              <div className="text-sm ">
+                <span className="text-sx text-blue-800 pr-2 py-1">Section:</span>
+                <span className="font-medium">{change.sectionName}</span>
+              </div>
+              <div className="text-sm ">
+                <span className="text-sx text-blue-800 pr-2 py-1">Row:</span>
+                <span className="font-medium">{change.label}</span>
+              </div>
+              <div className="text-sm">
+                <span className="text-sx text-blue-800 pr-2 py-1">Column:</span>
+                <span className="font-medium">{change.fieldName}:</span>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <div className="text-red-600">
+                    Old: {change.old || '(empty)'}
+                  </div>
+                  <div className="text-green-600">
+                    New: {change.new || '(empty)'}
+                  </div>
                 </div>
               </div>
             </div>

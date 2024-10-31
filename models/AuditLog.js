@@ -74,18 +74,57 @@ const getDiff = (oldDoc, newDoc) => {
   // Special handling for fields array
   if (oldObj?.fields && newObj?.fields) {
     const fieldsChanges = [];
-    for (let i = 0; i < newObj.fields.length; i++) {
-      const oldField = oldObj.fields[i];
-      const newField = newObj.fields[i];
-      
-      if (JSON.stringify(oldField?.fieldValue) !== JSON.stringify(newField?.fieldValue)) {
-        fieldsChanges.push({
-          fieldName: newField.fieldName,
-          old: oldField?.fieldValue,
-          new: newField?.fieldValue
-        });
+    
+    // Check if it's a multi-column structure (like the table)
+    const isMultiColumn = newObj.fields[0]?.fieldValue.length > 1;
+
+    if (isMultiColumn) {
+      // Handle multi-column structure (existing logic)
+      const labels = newObj.fields[0]?.fieldValue || [];
+
+      for (let i = 1; i < newObj.fields.length; i++) {
+        const oldField = oldObj.fields[i];
+        const newField = newObj.fields[i];
+        
+        if (JSON.stringify(oldField?.fieldValue) !== JSON.stringify(newField?.fieldValue)) {
+          const valueChanges = [];
+          for (let j = 0; j < newField.fieldValue.length; j++) {
+            if (oldField.fieldValue[j] !== newField.fieldValue[j] && 
+                newField.fieldValue[j] !== "") {
+              valueChanges.push({
+                sectionName: newObj.sectionName,
+                label: `${labels[j] || 'Row'} (${j + 1})`,
+                fieldName: newField.fieldName,
+                old: oldField.fieldValue[j],
+                new: newField.fieldValue[j],
+                rowIndex: j + 1
+              });
+            }
+          }
+          if (valueChanges.length > 0) {
+            fieldsChanges.push(...valueChanges);
+          }
+        }
+      }
+    } else {
+      // Handle single-column structure (like checkboxes)
+      for (let i = 0; i < newObj.fields.length; i++) {
+        const oldField = oldObj.fields[i];
+        const newField = newObj.fields[i];
+        
+        if (JSON.stringify(oldField?.fieldValue) !== JSON.stringify(newField?.fieldValue)) {
+          fieldsChanges.push({
+            sectionName: newObj.sectionName,
+            label: newField.fieldName,
+            fieldName: 'Value',
+            old: oldField.fieldValue[0],
+            new: newField.fieldValue[0],
+            rowIndex: i + 1
+          });
+        }
       }
     }
+    
     if (fieldsChanges.length > 0) {
       changes.fields = fieldsChanges;
     }
