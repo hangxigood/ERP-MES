@@ -2,14 +2,15 @@ import mongoose from 'mongoose';
 
 const fieldSchema = new mongoose.Schema({
   fieldName: { type: String, required: true },
-  fieldValue: { type: mongoose.Schema.Types.Mixed, required: false, default: null },
-  fieldType: { type: String, enum: ['text', 'float', 'int', 'date', 'checkbox'] }
+  fieldValue: { type: mongoose.Schema.Types.Mixed },
+  fieldType: { type: String, required: true, enum: ['text', 'float', 'int', 'date', 'checkbox'] }
 }, { _id: false });
 
 const batchRecordDataSchema = new mongoose.Schema({
   batchRecord: { type: mongoose.Schema.Types.ObjectId, ref: 'BatchRecord', required: true },
   sectionName: { type: String, required: true },
-  status: { type: String, required: true },
+  order: { type: Number, required: true }, // Section order
+  status: { type: String, required: true, enum: ['Not Started', 'In Progress', 'Completed'] },
   fields: [fieldSchema],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -18,10 +19,8 @@ const batchRecordDataSchema = new mongoose.Schema({
     signedAt: { type: Date },
     comment: { type: String }
   }],
-  version: {
-    type: Number,
-    default: 1
-  }
+  version: { type: Number, default: 1 },
+  isDuplicate: { type: Boolean, default: false }
 }, { timestamps: true });
 
 batchRecordDataSchema.index({ batchRecord: 1, sectionName: 1 }, { unique: true });
@@ -59,3 +58,4 @@ batchRecordDataSchema.pre('save', async function(next) {
 const BatchRecordData = mongoose.models.BatchRecordData || mongoose.model('BatchRecordData', batchRecordDataSchema);
 
 export default BatchRecordData;
+

@@ -1,22 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import Header from "../../../../../components/Header";
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation';
-import Header from "../../../../../components/Header";
 import Sidebar from "../../../../../components/Sidebar";
 import { createContext, useContext } from 'react';
 
 // Create a context for the refresh state
 export const RefreshContext = createContext();
 
-export default function BatchRecordLayout({ children, params }) {
+export default function BatchRecordLayout({ children }) {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [sections, setSections] = useState([]);
-  const { templateName, batchRecordId } = params;
-  const decodedTemplateName = decodeURIComponent(templateName);
-  const decodedBatchRecordId = decodeURIComponent(batchRecordId);
+  const params = useParams();
+  const templateName = params.templateName;
+  const batchRecordId = params.batchRecordId;
+  const [availableSections, setAvailableSections] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
@@ -24,32 +25,31 @@ export default function BatchRecordLayout({ children, params }) {
 
     const fetchSections = async () => {
       try {
-        const response = await fetch(`/api/${decodedTemplateName}/${decodedBatchRecordId}/sections`);
+        const response = await fetch(`/api/${templateName}/${batchRecordId}/sections`);
         if (!response.ok) {
           throw new Error('Failed to fetch sections');
         }
         const sectionsData = await response.json();
-        setSections(sectionsData);
+        // Sort the sections based on the order field
+        const sortedSections = sectionsData.sort((a, b) => a.order - b.order);
+        setAvailableSections(sortedSections);
       } catch (error) {
         console.error('Error fetching sections:', error);
       }
     };
 
-    fetchSections();
+    if (templateName && batchRecordId) {
+      fetchSections();
+    }
   }, [session, status, router, templateName, batchRecordId, refreshTrigger]);
-
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
 
   return (
     <RefreshContext.Provider value={{ refreshTrigger, setRefreshTrigger }}>
-      <div className="flex flex-col min-h-screen bg-white">
+      <div className="flex flex-col min-h-screen">
         <Header title={`BATCH RECORD: ${decodeURIComponent(templateName)}`} />
         <div className="flex flex-1">
-          <Sidebar availableSections={sections} />
-          {/* after adding overflow-hidden, the shaking is gone */}
-          <main className="flex-grow p-6 overflow-hidden"> 
+          <Sidebar availableSections={availableSections} />
+            <main className="flex-grow p-6 overflow-auto">
             {children}
           </main>
         </div>

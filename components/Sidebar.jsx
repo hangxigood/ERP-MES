@@ -1,40 +1,68 @@
-import React from 'react';
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SectionItem from './SectionItem';
 
-const Sidebar = ({ availableSections }) => {
+const Sidebar = ({ availableSections = [] }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const pathname = usePathname();
   const decodedPathname = decodeURIComponent(pathname);
   const pathSegments = decodedPathname.split('/').filter(Boolean);
   const templateName = pathSegments[0] || '';
   const batchRecordId = pathSegments[1] || '';
 
-  const decodedTemplateName = decodeURIComponent(templateName);
-  const decodedBatchRecordId = decodeURIComponent(batchRecordId);
+  const updatedSectionItems = availableSections.map(section => ({
+    text: section.displayName,
+    href: `/${templateName}/${batchRecordId}/${section.name}`,
+    isActive: `/${templateName}/${batchRecordId}/${section.name}` === decodedPathname,
+    isSigned: section.isSigned
+  }));
 
-  const updatedSectionItems = availableSections.map(section => {
-    const fullHref = `/${decodedTemplateName}/${decodedBatchRecordId}/${section.name}`;
-    return {
-      text: section.displayName,
-      href: fullHref,
-      isActive: fullHref === decodedPathname,
-      isSigned: section.isSigned
+  useEffect(() => {
+    const handleResize = () => {
+      setIsExpanded(window.innerWidth >= 768);
     };
-  });
+
+    // Set initial state
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Clean up
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
-    <nav className="flex flex-col w-[21%] max-md:ml-0 max-md:w-full">
-      <div className="flex grow gap-2.5 text-base text-black max-md:mt-10">
-        <div className="flex flex-col self-start px-5 mt-9">
-          <div className="text-lg font-bold text-teal-300">Sections</div>
-          {updatedSectionItems.map((item, index) => (
-            <Link key={index} href={item.href} passHref>
-              <SectionItem {...item} />
-            </Link>
-          ))}
+    <nav className={`transition-all duration-300 flex-shrink-0 bg-gray-100 border-r border-gray-200 ${isExpanded ? 'md:w-64' : 'w-16'}`}>
+      <div className={`flex flex-col h-full ${isExpanded ? 'p-4' : 'p-2'}`}>
+        <div className="flex justify-start mb-4">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-2 bg-teal-300 text-white rounded hover:bg-teal-400 transition-colors w-12 h-12 flex items-center justify-center"
+            aria-label={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         </div>
-        <div className="shrink-0 w-px border border-solid border-stone-900 h-[882px]" />
+        {isExpanded && (
+          <>
+            <div className="text-lg font-bold text-teal-300 mb-4">Sections</div>
+            {updatedSectionItems.length > 0 ? (
+              updatedSectionItems.map((item, index) => (
+                <Link key={index} href={item.href} passHref>
+                  <SectionItem {...item} />
+                </Link>
+              ))
+            ) : (
+              <div>No sections available</div>
+            )}
+          </>
+        )}
       </div>
     </nav>
   );
