@@ -5,6 +5,7 @@ import BatchRecord from '../../../../models/BatchRecord';
 import BatchRecordData from '../../../../models/BatchRecordData';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/authOptions";
+import { FieldValueHistory } from '../../../../models/FieldValueHistory';
 
 export async function POST(request, { params }) {
 	// const { templateName } = params;
@@ -39,15 +40,6 @@ export async function POST(request, { params }) {
       updatedBy: session.user.id
     });
 
-    // Add user info to the batch record
-    newBatchRecord._user = {
-      id: session.user.id,
-      role: session.user.role
-    }
-    newBatchRecord._clientInfo = {
-      userAgent: request.headers.get('user-agent'),
-      ip: request.headers.get('x-forwarded-for') || request.ip
-    };
 
     await newBatchRecord.save();
 
@@ -74,6 +66,16 @@ export async function POST(request, { params }) {
           createdBy: session.user.id,
           updatedBy: session.user.id
         });
+
+        // Add user and client info before saving
+        newBatchRecordData._user = {
+          id: session.user.id,
+          role: session.user.role
+        };
+        newBatchRecordData._clientInfo = {
+          userAgent: request.headers.get('user-agent'),
+          ip: request.headers.get('x-forwarded-for') || request.ip
+        };
 
         await newBatchRecordData.save();
         console.log("Saving successful");

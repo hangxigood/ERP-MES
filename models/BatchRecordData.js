@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { addAuditLogMiddleware } from './AuditLog';
 
 const fieldSchema = new mongoose.Schema({
   fieldName: { type: String, required: true },
@@ -18,13 +17,44 @@ const batchRecordDataSchema = new mongoose.Schema({
     signedBy: { type: String },
     signedAt: { type: Date },
     comment: { type: String }
-  }]
+  }],
+  version: {
+    type: Number,
+    default: 1
+  }
 }, { timestamps: true });
 
 batchRecordDataSchema.index({ batchRecord: 1, sectionName: 1 }, { unique: true });
 
-// Add the audit log middleware
-addAuditLogMiddleware(batchRecordDataSchema);
+// Simplified middleware for version history
+batchRecordDataSchema.pre('save', async function(next) {
+  // Record both initial creation and subsequent updates
+  if (this.isNew || this.isModified('fields')) {
+    // For new documents, version stays at 1
+    // For updates, increment the version
+    if (!this.isNew) {
+      this.version += 1;
+    }
+    
+    // Create history entry with cleaned field values
+    await mongoose.model('FieldValueHistory').create({
+      batchRecordData: this._id,
+      sectionName: this.sectionName,
+      version: this.version,
+      fieldsSnapshot: this.fields.map(field => ({
+        fieldName: field.fieldName,
+        fieldType: field.fieldType,
+        fieldValue: field.fieldValue
+      })),
+      metadata: {
+        userId: this._user?.id,
+        userRole: this._user?.role,
+        clientInfo: this._clientInfo
+      }
+    });
+  }
+  next();
+});
 
 const BatchRecordData = mongoose.models.BatchRecordData || mongoose.model('BatchRecordData', batchRecordDataSchema);
 

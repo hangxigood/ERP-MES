@@ -3,6 +3,7 @@ import dbConnect from '../../../../../lib/mongoose';
 import BatchRecord from '../../../../../models/BatchRecord';
 import BatchRecordData from '../../../../../models/BatchRecordData';
 import Template from '../../../../../models/Template';
+import FieldValueHistory from '../../../../../models/FieldValueHistory';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../../lib/authOptions";
 import mongoose from 'mongoose';
