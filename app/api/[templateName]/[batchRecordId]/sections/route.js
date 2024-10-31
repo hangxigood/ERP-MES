@@ -42,12 +42,6 @@ export async function GET(request, { params }) {
       order: section.order
     }));
 
-    // Add debug logging
-    console.log('Sections with order:', sections.map(s => ({
-      name: s.name,
-      order: s.order
-    })));
-
     return NextResponse.json(sections);
   } catch (error) {
     console.error('Error fetching batch record sections:', error);

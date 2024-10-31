@@ -7,6 +7,7 @@ const batchRecordSchema = new mongoose.Schema({
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { timestamps: true });
 
+
 const BatchRecord = mongoose.models.BatchRecord || mongoose.model('BatchRecord', batchRecordSchema);
 
 export default BatchRecord;

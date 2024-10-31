@@ -72,6 +72,16 @@ export async function POST(request, { params }) {
       isDuplicate: true
     });
 
+    // Add user and client info before saving
+    newSection._user = {
+      id: session.user.id,
+      role: session.user.role
+    };
+    newSection._clientInfo = {
+      userAgent: request.headers.get('user-agent'),
+      ip: request.headers.get('x-forwarded-for') || request.ip
+    };
+
     await newSection.save();
 
     return NextResponse.json(newSection);

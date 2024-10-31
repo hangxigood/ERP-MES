@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import dbConnect from '../../../../../lib/mongoose';
 import BatchRecord from '../../../../../models/BatchRecord';
 import BatchRecordData from '../../../../../models/BatchRecordData';
+import Template from '../../../../../models/Template';
+import FieldValueHistory from '../../../../../models/FieldValueHistory';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../../lib/authOptions";
 import mongoose from 'mongoose';
@@ -67,26 +69,34 @@ export async function POST(request, { params }) {
 
     const { data, status } = await request.json();
 
-    // Update the section data only if it hasn't been signed off
-    const updatedSectionData = await BatchRecordData.findOneAndUpdate(
-      {
-        batchRecord: batchRecordId,
-        sectionName: sectionName,
-        signoffs: { $size: 0 }  // This ensures the signoffs array is empty
-      },
-      {
-        $set: {
-          fields: data,
-          status: status,
-          updatedBy: session.user.id
-        }
-      },
-      { new: true, runValidators: true }
-    );
+    // First find the document
+    const sectionData = await BatchRecordData.findOne({
+      batchRecord: batchRecordId,
+      sectionName: sectionName,
+      signoffs: { $size: 0 }
+    });
 
-    if (!updatedSectionData) {
+    if (!sectionData) {
       return NextResponse.json({ error: 'Section data not found or has been signed off' }, { status: 403 });
     }
+
+    // Update the document using the instance
+    sectionData.fields = data;
+    sectionData.status = status;
+    sectionData.updatedBy = session.user.id;
+    
+    // Attach user info for audit logging
+    sectionData._user = {
+      id: session.user.id,
+      role: session.user.role
+    };
+    sectionData._clientInfo = {
+      userAgent: request.headers.get('user-agent'),
+      ip: request.headers.get('x-forwarded-for') || request.ip
+    };
+
+    // Save the document to trigger the middleware
+    const updatedSectionData = await sectionData.save();
 
     return NextResponse.json(updatedSectionData);
 

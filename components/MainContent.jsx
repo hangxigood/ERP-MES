@@ -142,7 +142,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
           return row[field.fieldName] || '';
         })
       }));
-      await onUpdate(submissionData, 'submitted');
+      await onUpdate(submissionData, 'In Progress');
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Error submitting form');

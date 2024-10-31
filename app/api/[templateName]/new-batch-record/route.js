@@ -5,6 +5,7 @@ import BatchRecord from '../../../../models/BatchRecord';
 import BatchRecordData from '../../../../models/BatchRecordData';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/authOptions";
+import { FieldValueHistory } from '../../../../models/FieldValueHistory';
 
 export async function POST(request, { params }) {
 	// const { templateName } = params;
@@ -38,6 +39,8 @@ export async function POST(request, { params }) {
       createdBy: session.user.id,
       updatedBy: session.user.id
     });
+
+
     await newBatchRecord.save();
 
     // Create batch record data for each section in the template
@@ -66,6 +69,16 @@ export async function POST(request, { params }) {
           updatedBy: session.user.id,
           sectionDescription: section.sectionDescription
         });
+
+        // Add user and client info before saving
+        newBatchRecordData._user = {
+          id: session.user.id,
+          role: session.user.role
+        };
+        newBatchRecordData._clientInfo = {
+          userAgent: request.headers.get('user-agent'),
+          ip: request.headers.get('x-forwarded-for') || request.ip
+        };
 
         await newBatchRecordData.save();
         console.log("Saving successful with order:", newBatchRecordData.order);
