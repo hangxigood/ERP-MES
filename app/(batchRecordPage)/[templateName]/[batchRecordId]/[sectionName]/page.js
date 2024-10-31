@@ -13,7 +13,6 @@ export default function SectionPage({ params }) {
   const decodedBatchRecordId = decodeURIComponent(batchRecordId);
   const [batchRecordData, setBatchRecordData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sections, setSections] = useState([]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -38,13 +37,6 @@ export default function SectionPage({ params }) {
         setBatchRecordData(batchRecordData);
         setLoading(false);
 
-        // Fetch available sections
-        const sectionsResponse = await fetch(`/api/${decodedTemplateName}/${decodedBatchRecordId}/sections`);
-        if (!sectionsResponse.ok) {
-          throw new Error('Failed to fetch sections');
-        }
-        const sectionsData = await sectionsResponse.json();
-        setSections(sectionsData);
       } catch (error) {
         console.error('Error fetching data:', error);
         setLoading(false);
@@ -113,7 +105,6 @@ export default function SectionPage({ params }) {
       templateName={decodedTemplateName}
       sectionName={sectionName}
       onUpdate={updateSectionData}
-      sections={sections}
       onSignoff={handleSignoff}
     />
   );
