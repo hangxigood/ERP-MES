@@ -66,7 +66,10 @@ export async function GET(request) {
         version: history.version - 1
       }).lean();
 
-      // Calculate changes
+      // Determine operation type based on previous version existence
+      const operationType = previousVersion ? 'update' : 'insert';
+
+      // Calculate changes only for updates
       const changes = previousVersion ? calculateFieldDiffs(
         previousVersion.fieldsSnapshot,
         history.fieldsSnapshot,
@@ -82,13 +85,13 @@ export async function GET(request) {
             : history.metadata.userId,
           name: history.metadata.userId?.name,
           email: history.metadata.userId?.email,
-          role: history.metadata.userId?.role || history.metadata.userRole // Fallback to userRole if not populated
+          role: history.metadata.userId?.role || history.metadata.userRole
         } : null
       };
 
       return {
         _id: history._id,
-        operationType: 'update',
+        operationType, // Now dynamically set based on previousVersion
         collectionName: 'BatchRecordData',
         documentId: history.batchRecordData,
         timestamp: history.timestamp,
@@ -123,7 +126,7 @@ export async function GET(request) {
           role: user.role
         })),
         roles,
-        operations: ['update'] // Since we're only tracking updates
+        operations: ['update', 'insert'] // Updated to include both operations
       },
       stats: {
         totalLogs: total,
