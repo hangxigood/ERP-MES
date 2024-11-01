@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 
 const fieldValueHistorySchema = new mongoose.Schema({
+  batchRecord: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BatchRecord',
+    required: true,
+    index: true
+  },
   batchRecordData: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'BatchRecordData',

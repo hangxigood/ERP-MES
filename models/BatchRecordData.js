@@ -37,6 +37,7 @@ batchRecordDataSchema.pre('save', async function(next) {
     
     // Create history entry with cleaned field values
     await mongoose.model('FieldValueHistory').create({
+      batchRecord: this.batchRecord,
       batchRecordData: this._id,
       sectionName: this.sectionName,
       version: this.version,

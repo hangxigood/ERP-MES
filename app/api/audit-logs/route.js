@@ -93,7 +93,7 @@ export async function GET(request) {
         _id: history._id,
         operationType, // Now dynamically set based on previousVersion
         collectionName: 'BatchRecordData',
-        documentId: history.batchRecordData,
+        documentId: history.batchRecord,
         timestamp: history.timestamp,
         metadata: userMetadata,
         updateDescription: {
@@ -164,9 +164,6 @@ function calculateFieldDiffs(oldFields, newFields, sectionName) {
   newFields.forEach((newField, fieldIndex) => {
     const oldField = oldFields[fieldIndex];
     if (!oldField) return;
-
-    // Skip if this is the first column (we use it for labels)
-    if (fieldIndex === 0) return;
 
     // Get values, handling both array and non-array cases
     const oldValues = Array.isArray(oldField.fieldValue) ? oldField.fieldValue : [oldField.fieldValue];
