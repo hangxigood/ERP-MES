@@ -11,22 +11,38 @@ export default function AuditLogViewer() {
     operation: '',
     startDate: format(new Date().setDate(new Date().getDate() - 7), 'yyyy-MM-dd'),
     endDate: format(new Date().setDate(new Date().getDate() + 1), 'yyyy-MM-dd'),
+    userId: '',
+    userRole: '',
     page: 1
+  });
+
+  const [filterOptions, setFilterOptions] = useState({
+    users: [],
+    roles: [],
+    collections: []
   });
 
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const queryParams = new URLSearchParams({
-        ...filters,
-        limit: 50
-      });
+      const queryParams = new URLSearchParams(
+        Object.entries(filters).reduce((acc, [key, value]) => {
+          if (value) acc[key] = value;
+          return acc;
+        }, {})
+      );
+      queryParams.append('limit', '50');
       
       const response = await fetch(`/api/audit-logs?${queryParams}`);
       const data = await response.json();
       
       if (response.ok) {
         setLogs(data.logs);
+        setFilterOptions({
+          users: data.filters?.users || [],
+          roles: data.filters?.roles || [],
+          collections: data.filters?.collections || []
+        });
       } else {
         console.error('Error fetching logs:', data.error);
       }
@@ -38,7 +54,11 @@ export default function AuditLogViewer() {
   };
 
   useEffect(() => {
-    fetchLogs();
+    const timer = setTimeout(() => {
+      fetchLogs();
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [filters]);
 
   const renderUserInfo = (metadata) => {
@@ -108,42 +128,60 @@ export default function AuditLogViewer() {
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow space-y-4 text-gray-900">
         <h2 className="text-lg font-semibold">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <select
             value={filters.collection}
             onChange={(e) => setFilters(prev => ({ ...prev, collection: e.target.value, page: 1 }))}
             className="border p-2 rounded"
           >
             <option value="">All Collections</option>
-            <option value="BatchRecord">Batch Records</option>
-            <option value="BatchRecordData">Batch Record Data</option>
-            <option value="User">Users</option>
+            {filterOptions.collections.map((collection) => (
+              <option key={collection} value={collection}>
+                {collection}
+              </option>
+            ))}
           </select>
 
           <select
-            value={filters.operation}
-            onChange={(e) => setFilters(prev => ({ ...prev, operation: e.target.value, page: 1 }))}
+            value={filters.userRole}
+            onChange={(e) => setFilters(prev => ({ ...prev, userRole: e.target.value, page: 1 }))}
             className="border p-2 rounded"
           >
-            <option value="">All Operations</option>
-            <option value="insert">Insert</option>
-            <option value="update">Update</option>
-            <option value="delete">Delete</option>
+            <option value="">All Roles</option>
+            {filterOptions.roles.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
           </select>
 
-          <input
-            type="date"
-            value={filters.startDate}
-            onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value, page: 1 }))}
+          <select
+            value={filters.userId}
+            onChange={(e) => setFilters(prev => ({ ...prev, userId: e.target.value, page: 1 }))}
             className="border p-2 rounded"
-          />
+          >
+            <option value="">All Users</option>
+            {filterOptions.users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name} ({user.email})
+              </option>
+            ))}
+          </select>
 
-          <input
-            type="date"
-            value={filters.endDate}
-            onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value, page: 1 }))}
-            className="border p-2 rounded"
-          />
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={filters.startDate}
+              onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value, page: 1 }))}
+              className="border p-2 rounded flex-1"
+            />
+            <input
+              type="date"
+              value={filters.endDate}
+              onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value, page: 1 }))}
+              className="border p-2 rounded flex-1"
+            />
+          </div>
         </div>
       </div>
 
