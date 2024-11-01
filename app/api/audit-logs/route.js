@@ -93,7 +93,7 @@ export async function GET(request) {
         _id: history._id,
         operationType, // Now dynamically set based on previousVersion
         collectionName: 'BatchRecordData',
-        documentId: history.batchRecordData,
+        documentId: history.batchRecord,
         timestamp: history.timestamp,
         metadata: userMetadata,
         updateDescription: {
