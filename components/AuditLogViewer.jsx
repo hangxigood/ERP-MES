@@ -2,11 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { useSession } from "next-auth/react";
+
+// This component displays an audit log viewer with filters and logs fetched from an API.
 
 export default function AuditLogViewer() {
+  // State variables for logs, loading status, and filter options
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
   const [filters, setFilters] = useState({
+    // Filter criteria for fetching logs
     collection: '',
     operation: '',
     startDate: format(new Date().setDate(new Date().getDate() - 7), 'yyyy-MM-dd'),
@@ -22,6 +28,7 @@ export default function AuditLogViewer() {
     collections: []
   });
 
+  // Fetch logs from the API based on the current filters
   const fetchLogs = async () => {
     try {
       setLoading(true);
@@ -54,6 +61,7 @@ export default function AuditLogViewer() {
   };
 
   useEffect(() => {
+    // Fetch logs whenever filters change
     const timer = setTimeout(() => {
       fetchLogs();
     }, 500);
@@ -61,6 +69,7 @@ export default function AuditLogViewer() {
     return () => clearTimeout(timer);
   }, [filters]);
 
+  // Render user information for each log entry
   const renderUserInfo = (metadata) => {
     if (!metadata?.user) return 'N/A';
     const { user } = metadata;
@@ -80,6 +89,7 @@ export default function AuditLogViewer() {
     );
   };
 
+  // Render changes for each log entry
   const renderChanges = (log) => {
     if (log.operationType === 'insert') {
       return <span className="text-green-600">New document created</span>;
@@ -123,9 +133,14 @@ export default function AuditLogViewer() {
     return <span className="text-gray-500">No changes recorded</span>;
   };
 
+  // Check if the user is authorized to access this page
+  if (!session || (session.user.role !== 'ADMIN')) {
+    return <div className="text-red-500 font-bold text-center mt-4">Access Denied: You are not authorized to access this page</div>;
+  }
+
   return (
     <div className="space-y-4">
-      {/* Filters */}
+      {/* Filters section for selecting log criteria */}
       <div className="bg-white p-4 rounded-lg shadow space-y-4 text-gray-900">
         <h2 className="text-lg font-semibold">Filters</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -197,6 +212,7 @@ export default function AuditLogViewer() {
         <table className="min-w-full">
           <thead className="bg-gray-50">
             <tr>
+              {/* Table headers for log details */}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operation</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Collection</th>
@@ -208,6 +224,7 @@ export default function AuditLogViewer() {
           <tbody className="bg-white divide-y divide-gray-200">
             {logs.map((log) => (
               <tr key={log._id} className="hover:bg-gray-50">
+                {/* Row for each log entry */}
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   {format(new Date(log.timestamp), 'yyyy-MM-dd HH:mm:ss')}
                 </td>
