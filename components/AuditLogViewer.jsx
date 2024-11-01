@@ -10,7 +10,7 @@ export default function AuditLogViewer() {
     collection: '',
     operation: '',
     startDate: format(new Date().setDate(new Date().getDate() - 7), 'yyyy-MM-dd'),
-    endDate: format(new Date(), 'yyyy-MM-dd'),
+    endDate: format(new Date().setDate(new Date().getDate() + 1), 'yyyy-MM-dd'),
     page: 1
   });
 
