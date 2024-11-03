@@ -20,6 +20,8 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
   const [pendingSubmissionData, setPendingSubmissionData] = useState(null);
   const { setRefreshTrigger } = useContext(RefreshContext);
   const router = useRouter();
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialFormData, setInitialFormData] = useState([]);
 
   // Build the columns for the DataSheetGrid, based on the field types
   const createColumns = useCallback((fields, isSignedOff) => {
@@ -121,9 +123,20 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
 
     setColumns(newColumns);
     setFormData(transformedData);
+    setInitialFormData(transformedData); // Store initial state
+    setHasChanges(false); // Reset changes flag
     setSectionDescription(initialData.sectionDescription || '');
     setIsSignedOff(newIsSignedOff);
   }, [initialData, createColumns]);
+
+  // Add function to check for changes
+  const handleDataChange = useCallback((newData) => {
+    setFormData(newData);
+    
+    // Compare new data with initial data
+    const hasDataChanged = JSON.stringify(newData) !== JSON.stringify(initialFormData);
+    setHasChanges(hasDataChanged);
+  }, [initialFormData]);
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -281,7 +294,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
           <DataSheetGrid
             key={isSignedOff}
             value={formData}
-            onChange={setFormData}
+            onChange={handleDataChange}
             columns={columns}
             height="100%"
             headerRowHeight={90}
@@ -314,11 +327,11 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
             <button 
               type="submit" 
               className={`px-8 py-2 rounded ${
-                isSubmitting || initialData.signoffs?.length > 0 
+                isSubmitting || initialData.signoffs?.length > 0 || !hasChanges
                   ? 'bg-gray-300 cursor-not-allowed' 
                   : 'bg-teal-300 hover:bg-teal-400'
               }`}
-              disabled={isSubmitting || initialData.signoffs?.length > 0}
+              disabled={isSubmitting || initialData.signoffs?.length > 0 || !hasChanges}
             >
               {isSubmitting ? 'Submitting...' : 'Submit'}
             </button>
