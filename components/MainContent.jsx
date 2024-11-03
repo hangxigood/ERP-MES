@@ -16,6 +16,8 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
   const [sectionDescription, setSectionDescription] = useState('');
   const [isSignedOff, setIsSignedOff] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showSubmitPasswordModal, setShowSubmitPasswordModal] = useState(false);
+  const [pendingSubmissionData, setPendingSubmissionData] = useState(null);
   const { setRefreshTrigger } = useContext(RefreshContext);
   const router = useRouter();
 
@@ -126,28 +128,50 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isSubmitting) return; // Prevent multiple submissions
-    setIsSubmitting(true);
+    if (isSubmitting) return;
 
+    const submissionData = initialData.fields.map(field => ({
+      fieldName: field.fieldName,
+      fieldType: field.fieldType,
+      fieldValue: formData.map(row => {
+        if (field.fieldType === 'checkbox') {
+          return row[field.fieldName] ? 'true' : 'false';
+        } else if (field.fieldType === 'date') {
+          return row[field.fieldName] ? row[field.fieldName].toISOString().split('T')[0] : '';
+        }
+        return row[field.fieldName] || '';
+      })
+    }));
+
+    setPendingSubmissionData(submissionData);
+    setShowSubmitPasswordModal(true);
+  };
+
+  const handleSubmitPasswordVerify = async (password, comment) => {
+    if (!password || !pendingSubmissionData) return;
+    
+    setIsSubmitting(true);
     try {
-      const submissionData = initialData.fields.map(field => ({
-        fieldName: field.fieldName,
-        fieldType: field.fieldType,
-        fieldValue: formData.map(row => {
-          if (field.fieldType === 'checkbox') {
-            return row[field.fieldName] ? 'true' : 'false';
-          } else if (field.fieldType === 'date') {
-            return row[field.fieldName] ? row[field.fieldName].toISOString().split('T')[0] : '';
-          }
-          return row[field.fieldName] || '';
-        })
-      }));
-      await onUpdate(submissionData, 'In Progress');
+      const response = await fetch('/api/verify-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      if (response.ok) {
+        await onUpdate(pendingSubmissionData, 'In Progress');
+        setShowSubmitPasswordModal(false);
+      } else {
+        alert('Password verification failed. Please try again.');
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Error submitting form');
     } finally {
       setIsSubmitting(false);
+      setPendingSubmissionData(null);
     }
   };
 
@@ -313,6 +337,18 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
         <PasswordModal
           onClose={() => setShowPasswordModal(false)}
           onSubmit={handlePasswordSubmit}
+          title="Confirm Sign-off"
+        />
+      )}
+      
+      {showSubmitPasswordModal && (
+        <PasswordModal
+          onClose={() => {
+            setShowSubmitPasswordModal(false);
+            setPendingSubmissionData(null);
+          }}
+          onSubmit={handleSubmitPasswordVerify}
+          title="Confirm Submit"
         />
       )}
     </main>
