@@ -8,8 +8,9 @@ import { RefreshContext } from '../app/(batchRecordPage)/[templateName]/[batchRe
 import { useRouter } from 'next/navigation';
 import BatchRecordInfo from './BatchRecordInfo';
 
-const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateName, batchRecordId }) => {
-  // State to hold the transformed form data
+const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectionName, templateName, batchRecordId }) => {
+  // Add initialData state
+  const [initialData, setInitialData] = useState(propInitialData);
   const [formData, setFormData] = useState([]);
   // State to track form submission status
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,6 +24,11 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
   const router = useRouter();
   const [hasChanges, setHasChanges] = useState(false);
   const [initialFormData, setInitialFormData] = useState([]);
+
+  // Update useEffect dependency to use initialData instead of propInitialData
+  useEffect(() => {
+    setInitialData(propInitialData);
+  }, [propInitialData]);
 
   // Build the columns for the DataSheetGrid, based on the field types
   const createColumns = useCallback((fields, isSignedOff) => {
@@ -178,6 +184,61 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
         await onUpdate(pendingSubmissionData, 'In Progress');
         setShowSubmitPasswordModal(false);
 
+        // Refresh the data
+        const refreshResponse = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}`);
+        if (refreshResponse.ok) {
+          const refreshedData = await refreshResponse.json();
+          
+          // If this isn't the header section, fetch the header data
+          if (sectionName !== 'Header') {
+            const headerResponse = await fetch(`/api/${templateName}/${batchRecordId}/Header`);
+            if (headerResponse.ok) {
+              const headerData = await headerResponse.json();
+              refreshedData.batchInfo = {
+                fields: headerData.fields
+              };
+            }
+          } else {
+            refreshedData.batchInfo = {
+              fields: refreshedData.fields
+            };
+          }
+          
+          // Transform the refreshed data into the correct format
+          const rowCount = Math.max(
+            ...refreshedData.fields
+              .filter(field => Array.isArray(field.fieldValue))
+              .map(field => field.fieldValue.length),
+            1
+          );
+
+          const transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
+            const rowData = { id: `row_${rowIndex}` };
+            refreshedData.fields.forEach(field => {
+              if (field.fieldType === 'checkbox') {
+                rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+                  ? (field.fieldValue[rowIndex] === 'true' || field.fieldValue[rowIndex] === true)
+                  : (field.fieldValue === 'true' || field.fieldValue === true);
+              } else if (field.fieldType === 'date') {
+                const dateValue = Array.isArray(field.fieldValue) ? field.fieldValue[rowIndex] : field.fieldValue;
+                rowData[field.fieldName] = dateValue ? new Date(dateValue) : null;
+              } else {
+                rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+                  ? (field.fieldValue[rowIndex] ?? '')
+                  : (field.fieldValue ?? '');
+              }
+            });
+            return rowData;
+          });
+
+          // Update all necessary states with refreshed data
+          setFormData(transformedData);
+          setInitialFormData(transformedData);
+          setHasChanges(false);
+          // Update the initialData state with the refreshed data
+          setInitialData && setInitialData(refreshedData);
+          setRefreshTrigger(prev => prev + 1);
+        }
       } else {
         alert('Password verification failed. Please try again.');
       }
