@@ -6,6 +6,7 @@ import PasswordModal from './PasswordModal';
 import { useContext } from 'react';
 import { RefreshContext } from '../app/(batchRecordPage)/[templateName]/[batchRecordId]/[sectionName]/layout';
 import { useRouter } from 'next/navigation';
+import BatchRecordInfo from './BatchRecordInfo';
 
 const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateName, batchRecordId }) => {
   // State to hold the transformed form data
@@ -176,6 +177,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
       if (response.ok) {
         await onUpdate(pendingSubmissionData, 'In Progress');
         setShowSubmitPasswordModal(false);
+
       } else {
         alert('Password verification failed. Please try again.');
       }
@@ -262,14 +264,35 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
     }
   };
 
+  // get field value from initialData
+  const getHeaderFieldValue = (fieldName) => {
+    if (!initialData?.batchInfo?.fields) return '';
+    const field = initialData.batchInfo.fields.find(f => f.fieldName === fieldName);
+    // Return the full value from the array
+    return Array.isArray(field?.fieldValue) ? field.fieldValue[0] : field?.fieldValue || '';
+  };
+
   if (columns.length === 0) {
     return <div>Loading...</div>; // Or any loading indicator
   }
 
   return (
     <main className="flex flex-col w-full h-full">
+      {/* Pass the header data from initialData */}
+      <BatchRecordInfo
+        family={getHeaderFieldValue('Family')}
+        partPrefix={getHeaderFieldValue('Part Prefix')}
+        partNumber={getHeaderFieldValue('Part Number')}
+        lotNumber={getHeaderFieldValue('Lot Number')}
+        documentNumber={getHeaderFieldValue('Document Number')}
+        revision={getHeaderFieldValue('Revision')}
+        date={getHeaderFieldValue('Date')}
+        dateOfManufacture={getHeaderFieldValue('Date of Manufacture')}
+        description={getHeaderFieldValue('Description')}
+      />
+      
       {sectionDescription && (
-        <div className="mb-4 p-3 bg-gray-500 rounded">
+        <div className="mb-4 mt-6 p-3 bg-gray-500 rounded">
           <p className="text-base text-white whitespace-pre-line">{sectionDescription}</p>
         </div>
       )}
@@ -299,6 +322,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
             height="100%"
             headerRowHeight={90}
             lockRows={isSignedOff}
+            className="batch-record-grid"
           />
         </div>
         <div className="flex justify-between mt-4">

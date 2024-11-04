@@ -12,28 +12,54 @@ function BatchRecordInfo({
   description,
 }) {
   return (
-    <section className="overflow-hidden self-stretch px-9 py-8 w-full bg-white rounded border-2 border-gray-500 border-solid max-md:px-5 max-md:max-w-full">
-      <div className="flex gap-5 max-md:flex-col">
-        <div className="flex flex-col w-[29%] max-md:ml-0 max-md:w-full">
-          <div className="flex flex-col grow items-start text-base text-black max-md:mt-10">
-            <h2 className="text-xl font-medium text-teal-300">OXY BATCH RECORD</h2>
-            <div className="mt-2.5">Family: {family}</div>
-            <div className="mt-1">Part Prefix: {partPrefix}</div>
-            <div className="self-stretch mt-1">Part Number: {partNumber}</div>
-            <div>Lot Number: {lotNumber}</div>
+    <section className="mb-6 bg-white rounded-lg border border-gray-300">
+      <h2 className="text-xl font-medium text-teal-500 p-4 pb-2">OXY BATCH RECORD</h2>
+      <div className="grid grid-cols-3 gap-8 p-4 pt-0">
+        {/* Left Column */}
+        <div className="space-y-2">
+          <div className="flex">
+            <span className="font-medium w-32">Family:</span>
+            <span>{family}</span>
+          </div>
+          <div className="flex">
+            <span className="font-medium w-32">Part Prefix:</span>
+            <span>{partPrefix}</span>
+          </div>
+          <div className="flex">
+            <span className="font-medium w-32">Part Number:</span>
+            <span>{partNumber}</span>
+          </div>
+          <div className="flex">
+            <span className="font-medium w-32">Lot Number:</span>
+            <span>{lotNumber}</span>
           </div>
         </div>
-        <div className="flex flex-col ml-5 w-[26%] max-md:ml-0 max-md:w-full">
-          <div className="flex flex-col grow items-start mt-7 text-base text-black max-md:mt-10">
-            <div className="self-stretch">Document Number: {documentNumber}</div>
-            <div>Revision: {revision}</div>
-            <div className="mt-1">Date: {date}</div>
-            <div className="mt-1.5">Date of Manufacture: {dateOfManufacture}</div>
+
+        {/* Middle Column */}
+        <div className="space-y-2">
+          <div className="flex">
+            <span className="font-medium w-32">Document Number:</span>
+            <span>{documentNumber}</span>
+          </div>
+          <div className="flex">
+            <span className="font-medium w-32">Revision:</span>
+            <span>{revision}</span>
+          </div>
+          <div className="flex">
+            <span className="font-medium w-32">Date:</span>
+            <span>{date}</span>
+          </div>
+          <div className="flex">
+            <span className="font-medium w-32">Date of Manufacture:</span>
+            <span>{dateOfManufacture}</span>
           </div>
         </div>
-        <div className="flex flex-col ml-5 w-[46%] max-md:ml-0 max-md:w-full">
-          <div className="flex gap-10 self-stretch my-auto text-base text-black max-md:mt-10">
-            <div>Description: {description}</div>
+
+        {/* Right Column */}
+        <div className="space-y-2">
+          <div className="flex">
+            <span className="font-medium w-32">Description:</span>
+            <span>{description}</span>
           </div>
         </div>
       </div>
