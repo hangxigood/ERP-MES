@@ -4,8 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { DataSheetGrid, keyColumn, textColumn, floatColumn, intColumn, dateColumn, checkboxColumn } from 'react-datasheet-grid';
 import PasswordModal from './PasswordModal';
 import { useContext } from 'react';
-import { RefreshContext } from '../app/(batchRecordPage)/[templateName]/[batchRecordId]/[sectionName]/layout';
-import { useRouter } from 'next/navigation';
+import { SharedContext } from '../app/(batchRecordPage)/[templateName]/[batchRecordId]/[sectionName]/layout';
+import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
 
 const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateName, batchRecordId }) => {
   // State to hold the transformed form data
@@ -18,10 +18,9 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showSubmitPasswordModal, setShowSubmitPasswordModal] = useState(false);
   const [pendingSubmissionData, setPendingSubmissionData] = useState(null);
-  const { setRefreshTrigger } = useContext(RefreshContext);
-  const router = useRouter();
-  const [hasChanges, setHasChanges] = useState(false);
   const [initialFormData, setInitialFormData] = useState([]);
+  const { setHasUnsavedChanges, hasUnsavedChanges, setRefreshTrigger } = useContext(SharedContext);
+  const { routerPush } = useUnsavedChanges(hasUnsavedChanges);
 
   // Build the columns for the DataSheetGrid, based on the field types
   const createColumns = useCallback((fields, isSignedOff) => {
@@ -124,10 +123,10 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
     setColumns(newColumns);
     setFormData(transformedData);
     setInitialFormData(transformedData); // Store initial state
-    setHasChanges(false); // Reset changes flag
+    setHasUnsavedChanges(false); // Reset changes flag
     setSectionDescription(initialData.sectionDescription || '');
     setIsSignedOff(newIsSignedOff);
-  }, [initialData, createColumns]);
+  }, [initialData, createColumns, setHasUnsavedChanges]);
 
   // Add function to check for changes
   const handleDataChange = useCallback((newData) => {
@@ -135,8 +134,8 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
     
     // Compare new data with initial data
     const hasDataChanged = JSON.stringify(newData) !== JSON.stringify(initialFormData);
-    setHasChanges(hasDataChanged);
-  }, [initialFormData]);
+    setHasUnsavedChanges(hasDataChanged);
+  }, [initialFormData, setHasUnsavedChanges]);
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -176,6 +175,7 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
       if (response.ok) {
         await onUpdate(pendingSubmissionData, 'In Progress');
         setShowSubmitPasswordModal(false);
+        setHasUnsavedChanges(false); // Reset the shared context
       } else {
         alert('Password verification failed. Please try again.');
       }
@@ -252,9 +252,9 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
         throw new Error('Failed to delete section');
       }
 
-      // Navigate back to the main section
+      // Navigate back to the main section using routerPush
       const mainSectionName = sectionName.split(' ')[0];
-      router.push(`/${templateName}/${batchRecordId}/${mainSectionName}`);
+      routerPush(`/${templateName}/${batchRecordId}/${mainSectionName}`);
       setRefreshTrigger(prev => prev + 1);
     } catch (error) {
       console.error('Error deleting section:', error);
@@ -327,11 +327,11 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
             <button 
               type="submit" 
               className={`px-8 py-2 rounded ${
-                isSubmitting || initialData.signoffs?.length > 0 || !hasChanges
+                isSubmitting || initialData.signoffs?.length > 0 || !hasUnsavedChanges
                   ? 'bg-gray-300 cursor-not-allowed' 
                   : 'bg-teal-300 hover:bg-teal-400'
               }`}
-              disabled={isSubmitting || initialData.signoffs?.length > 0 || !hasChanges}
+              disabled={isSubmitting || initialData.signoffs?.length > 0 || !hasUnsavedChanges}
             >
               {isSubmitting ? 'Submitting...' : 'Submit'}
             </button>

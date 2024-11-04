@@ -6,10 +6,13 @@ import Header from "../../../../../components/Header";
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import Sidebar from "../../../../../components/Sidebar";
-import { createContext, useContext } from 'react';
+import { createContext } from 'react';
 
 // Create a context for the refresh state
 export const RefreshContext = createContext();
+
+// Create a context for the shared state
+export const SharedContext = createContext();
 
 export default function BatchRecordLayout({ children }) {
   const router = useRouter();
@@ -19,6 +22,7 @@ export default function BatchRecordLayout({ children }) {
   const batchRecordId = params.batchRecordId;
   const [availableSections, setAvailableSections] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -44,16 +48,21 @@ export default function BatchRecordLayout({ children }) {
   }, [session, status, router, templateName, batchRecordId, refreshTrigger]);
 
   return (
-    <RefreshContext.Provider value={{ refreshTrigger, setRefreshTrigger }}>
+    <SharedContext.Provider value={{ 
+      refreshTrigger, 
+      setRefreshTrigger,
+      hasUnsavedChanges,
+      setHasUnsavedChanges 
+    }}>
       <div className="flex flex-col min-h-screen">
         <Header title={`BATCH RECORD: ${decodeURIComponent(templateName)}`} />
         <div className="flex flex-1">
           <Sidebar availableSections={availableSections} />
-            <main className="flex-grow p-6 overflow-auto">
+          <main className="flex-grow p-6 overflow-auto">
             {children}
           </main>
         </div>
       </div>
-    </RefreshContext.Provider>
+    </SharedContext.Provider>
   );
 }
