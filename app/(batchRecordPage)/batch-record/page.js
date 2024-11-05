@@ -2,13 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from "../../../components/Header";
 
 export default function BatchRecordsList() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const { status } = useSession();
   const [batchRecords, setBatchRecords] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -16,7 +14,7 @@ export default function BatchRecordsList() {
     if (status === "loading") return;
 
     fetchBatchRecords();
-  }, [session, status, router]);
+  }, [status]);
 
   const fetchBatchRecords = async () => {
     try {

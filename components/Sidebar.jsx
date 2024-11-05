@@ -1,9 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SectionItem from './SectionItem';
+import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
+import { SharedContext } from '../contexts/BatchRecordContext';
+
+// SafeLink component
+const SafeLink = ({ href, children, routerPush, ...props }) => {
+  const handleClick = (e) => {
+    e.preventDefault();
+    routerPush(href);
+  };
+
+  return (
+    <Link href={href} onClick={handleClick} {...props}>
+      {children}
+    </Link>
+  );
+};
 
 const Sidebar = ({ availableSections = [] }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -12,6 +28,8 @@ const Sidebar = ({ availableSections = [] }) => {
   const pathSegments = decodedPathname.split('/').filter(Boolean);
   const templateName = pathSegments[0] || '';
   const batchRecordId = pathSegments[1] || '';
+  const { hasUnsavedChanges } = useContext(SharedContext);
+  const { routerPush } = useUnsavedChanges(hasUnsavedChanges);
 
   const updatedSectionItems = availableSections.map(section => ({
     text: section.displayName,
@@ -54,9 +72,13 @@ const Sidebar = ({ availableSections = [] }) => {
             <div className="text-lg font-bold text-teal-300 mb-4">Sections</div>
             {updatedSectionItems.length > 0 ? (
               updatedSectionItems.map((item, index) => (
-                <Link key={index} href={item.href} passHref>
+                <SafeLink 
+                  key={index}
+                  href={item.href}
+                  routerPush={routerPush}
+                >
                   <SectionItem {...item} />
-                </Link>
+                </SafeLink>
               ))
             ) : (
               <div>No sections available</div>
