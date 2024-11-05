@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { DataSheetGrid, keyColumn, textColumn, floatColumn, intColumn, dateColumn, checkboxColumn } from 'react-datasheet-grid';
 import PasswordModal from './PasswordModal';
 import { useContext } from 'react';
-import { SharedContext } from '../app/(batchRecordPage)/[templateName]/[batchRecordId]/[sectionName]/layout';
+import { SharedContext } from '../contexts/BatchRecordContext';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
 
 const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateName, batchRecordId }) => {
