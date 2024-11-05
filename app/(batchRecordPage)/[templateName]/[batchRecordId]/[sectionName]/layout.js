@@ -4,25 +4,82 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Header from "../../../../../components/Header";
 import { useSession } from "next-auth/react";
-import { useRouter } from 'next/navigation';
 import Sidebar from "../../../../../components/Sidebar";
-import { createContext, useContext } from 'react';
+import { createContext } from 'react';
 
-// Create a context for the refresh state
+/**
+ * Context for managing refresh state across components
+ * @type {React.Context}
+ */
 export const RefreshContext = createContext();
 
+/**
+ * Context for sharing state between components
+ * @type {React.Context}
+ */
+export const SharedContext = createContext();
+
+/**
+ * BatchRecordLayout Component
+ * 
+ * A layout component that provides the structure for batch record pages.
+ * It manages the sidebar navigation, authentication state, and shared context
+ * for child components.
+ *
+ * @component
+ * @param {Object} props
+ * @param {React.ReactNode} props.children - Child components to render within the layout
+ * 
+ * @example
+ * return (
+ *   <BatchRecordLayout>
+ *     <YourPageContent />
+ *   </BatchRecordLayout>
+ * )
+ */
 export default function BatchRecordLayout({ children }) {
-  const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const params = useParams();
   const templateName = params.templateName;
   const batchRecordId = params.batchRecordId;
+
+  /**
+   * State for managing available sections in the sidebar
+   * @type {[Array, Function]}
+   */
   const [availableSections, setAvailableSections] = useState([]);
+
+  /**
+   * State for triggering sidebar refresh
+   * Incrementing this value will cause the sections to be refetched
+   * @type {[number, Function]}
+   */
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  /**
+   * State for tracking unsaved changes in the form
+   * @type {[boolean, Function]}
+   */
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  /**
+   * Fetches available sections when component mounts or when dependencies change
+   * 
+   * Dependencies:
+   * - templateName: Current template name from URL
+   * - batchRecordId: Current batch record ID from URL
+   * - refreshTrigger: Manual refresh trigger
+   * - status: Authentication status
+   */
   useEffect(() => {
+    // Don't fetch if still authenticating
     if (status === "loading") return;
 
+    /**
+     * Fetches and sorts sections from the API
+     * @async
+     * @function
+     */
     const fetchSections = async () => {
       try {
         const response = await fetch(`/api/${templateName}/${batchRecordId}/sections`);
@@ -30,7 +87,7 @@ export default function BatchRecordLayout({ children }) {
           throw new Error('Failed to fetch sections');
         }
         const sectionsData = await response.json();
-        // Sort the sections based on the order field
+        // Sort sections by order property
         const sortedSections = sectionsData.sort((a, b) => a.order - b.order);
         setAvailableSections(sortedSections);
       } catch (error) {
@@ -38,22 +95,28 @@ export default function BatchRecordLayout({ children }) {
       }
     };
 
+    // Only fetch if we have required parameters
     if (templateName && batchRecordId) {
       fetchSections();
     }
-  }, [session, status, router, templateName, batchRecordId, refreshTrigger]);
+  }, [templateName, batchRecordId, refreshTrigger, status]);
 
   return (
-    <RefreshContext.Provider value={{ refreshTrigger, setRefreshTrigger }}>
+    <SharedContext.Provider value={{ 
+      refreshTrigger, 
+      setRefreshTrigger,
+      hasUnsavedChanges,
+      setHasUnsavedChanges 
+    }}>
       <div className="flex flex-col min-h-screen">
         <Header title={`BATCH RECORD: ${decodeURIComponent(templateName)}`} />
         <div className="flex flex-1">
           <Sidebar availableSections={availableSections} />
-            <main className="flex-grow p-6 overflow-auto">
+          <main className="flex-grow p-6 overflow-auto">
             {children}
           </main>
         </div>
       </div>
-    </RefreshContext.Provider>
+    </SharedContext.Provider>
   );
 }
