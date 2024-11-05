@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SectionItem from './SectionItem';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
-import { SharedContext } from '../app/(batchRecordPage)/[templateName]/[batchRecordId]/[sectionName]/layout';
+import { SharedContext } from '../contexts/BatchRecordContext';
 
 // SafeLink component
 const SafeLink = ({ href, children, routerPush, ...props }) => {

@@ -1,13 +1,16 @@
 "use client";
- 
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "../../../components/ui/Button";
 import NextLink from "next/link";
 import Image from 'next/image';
 import logo from "../../../public/images/SMI_logo.png";
- 
-function ResetPasswordPage() {
+
+// Add this export to prevent static generation
+export const dynamic = 'force-dynamic';
+
+function ResetPasswordContent() {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
@@ -16,7 +19,7 @@ function ResetPasswordPage() {
     const searchParams = useSearchParams();
     const [token, setToken] = useState("");
     const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
- 
+
     const [passwordCriteria, setPasswordCriteria] = useState({
         length: false,
         lowercase: false,
@@ -24,14 +27,14 @@ function ResetPasswordPage() {
         number: false,
         special: false
     });
- 
+
     useEffect(() => {
         const tokenFromUrl = searchParams.get('token');
         if (tokenFromUrl) {
             setToken(tokenFromUrl);
         }
     }, [searchParams]);
- 
+
     useEffect(() => {
         setPasswordCriteria({
             length: newPassword.length >= 5,
@@ -41,48 +44,48 @@ function ResetPasswordPage() {
             special: /[!@#$%^&*(),.?":{}|<>]/.test(newPassword)
         });
     }, [newPassword]);
- 
+
     const isPasswordSecure = Object.values(passwordCriteria).every(Boolean);
- 
+
     const handleNewPasswordFocus = () => {
         setShowPasswordRequirements(true);
     };
- 
+
     const handleConfirmPasswordFocus = () => {
         if (isPasswordSecure) {
             setShowPasswordRequirements(false);
         }
     };
- 
+
     async function handleSubmit(e) {
         e.preventDefault();
         setMessage("");
         setError("");
- 
+
         if (!token || !newPassword || !confirmPassword) {
             setError("All fields are required");
             return;
         }
- 
+
         if (!isPasswordSecure) {
             setError("Please meet all password requirements");
             return;
         }
- 
+
         if (newPassword !== confirmPassword) {
             setError("Passwords do not match");
             return;
         }
- 
+
         try {
             const response = await fetch('/api/reset-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, newPassword }),
             });
- 
+
             const data = await response.json();
- 
+
             if (response.ok) {
                 setMessage(data.message);
                 setTimeout(() => router.push('/login'), 3000);
@@ -94,7 +97,7 @@ function ResetPasswordPage() {
             setError('An unexpected error occurred. Please try again.');
         }
     }
- 
+
     return (
         <div className="flex flex-col items-center text-lg text-black py-36 bg-teal-300">
             <div className="flex flex-col px-14 pt-14 pb-9 bg-white rounded-3xl w-[550px]">
@@ -108,7 +111,7 @@ function ResetPasswordPage() {
                 <h1 className="self-center mb-5 text-1xl text-gray-500">
                     Reset Password
                 </h1>
-               
+
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="newPassword" className="block mb-1.5">New Password</label>
                     <input
@@ -119,7 +122,7 @@ function ResetPasswordPage() {
                         onFocus={handleNewPasswordFocus}
                         className="w-full rounded border border-solid border-neutral-700 h-[43px] px-2 mb-4"
                     />
-                   
+
                     <label htmlFor="confirmPassword" className="block mb-1.5">Confirm New Password</label>
                     <input
                         id="confirmPassword"
@@ -130,7 +133,7 @@ function ResetPasswordPage() {
                         className="w-full rounded border border-solid border-neutral-700 h-[43px] px-2 mb-4"
                     />
                     <Button text="Reset Password" type="submit" />
-                   
+
                     {showPasswordRequirements && (
                         <div className="py-2 text-gray-500">
                             <p className="mt-2 mb-1">Please use a password with:</p>
@@ -155,12 +158,26 @@ function ResetPasswordPage() {
                     )}
                 </form>
                 {message && <p className="text-green-500 mt-2">{message}</p>}
- 
+
                 {error && <p className="text-red-500 mt-2">{error}</p>}
                 <NextLink href="/login" className="self-end mt-2.5 text-gray-500 text-opacity-60">Back to Login</NextLink>
             </div>
         </div>
     );
 }
- 
+
+function ResetPasswordPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex flex-col items-center text-lg text-black py-36 bg-teal-300">
+                <div className="flex flex-col px-14 pt-14 pb-9 bg-white rounded-3xl w-[550px]">
+                    <p>Loading...</p>
+                </div>
+            </div>
+        }>
+            <ResetPasswordContent />
+        </Suspense>
+    );
+}
+
 export default ResetPasswordPage;

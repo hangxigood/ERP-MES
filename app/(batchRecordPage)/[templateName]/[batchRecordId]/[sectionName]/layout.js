@@ -5,19 +5,7 @@ import { useParams } from 'next/navigation';
 import Header from "../../../../../components/Header";
 import { useSession } from "next-auth/react";
 import Sidebar from "../../../../../components/Sidebar";
-import { createContext } from 'react';
-
-/**
- * Context for managing refresh state across components
- * @type {React.Context}
- */
-export const RefreshContext = createContext();
-
-/**
- * Context for sharing state between components
- * @type {React.Context}
- */
-export const SharedContext = createContext();
+import { SharedContext } from '../../../../../contexts/BatchRecordContext';
 
 /**
  * BatchRecordLayout Component
