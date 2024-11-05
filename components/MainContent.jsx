@@ -339,26 +339,9 @@ const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectio
 
   return (
     <main className="flex flex-col w-full h-full">
-      {/* Pass the header data from initialData */}
-      <BatchRecordInfo
-        family={getHeaderFieldValue('Family')}
-        partPrefix={getHeaderFieldValue('Part Prefix')}
-        partNumber={getHeaderFieldValue('Part Number')}
-        lotNumber={getHeaderFieldValue('Lot Number')}
-        documentNumber={getHeaderFieldValue('Document Number')}
-        revision={getHeaderFieldValue('Revision')}
-        date={getHeaderFieldValue('Date')}
-        dateOfManufacture={getHeaderFieldValue('Date of Manufacture')}
-        description={getHeaderFieldValue('Description')}
-      />
-      
-      {sectionDescription && (
-        <div className="mb-4 mt-6 p-3 bg-gray-500 rounded">
-          <p className="text-base text-white whitespace-pre-line">{sectionDescription}</p>
-        </div>
-      )}
+
       {initialData.signoffs && initialData.signoffs.length > 0 && (
-        <div className="mt-4 p-4 bg-gray-100 rounded text-gray-500">
+        <div className="mt-4 mb-4 p-4 bg-gray-100 rounded text-gray-500">
           <h3 className="font-bold">Sign-offs</h3>
           {initialData.signoffs.map((signoff, index) => (
             <div key={index} className="mb-2 pb-2 border-b last:border-b-0">
@@ -371,6 +354,24 @@ const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectio
           ))}
         </div>
       )}
+      {/* Pass the header data from initialData */}
+      <BatchRecordInfo
+        family={getHeaderFieldValue('Family')}
+        partPrefix={getHeaderFieldValue('Part Prefix')}
+        partNumber={getHeaderFieldValue('Part Number')}
+        lotNumber={getHeaderFieldValue('Lot Number')}
+        documentNumber={getHeaderFieldValue('Document Number')}
+        revision={getHeaderFieldValue('Revision')}
+        date={getHeaderFieldValue('Date')}
+        dateOfManufacture={getHeaderFieldValue('Date of Manufacture')}
+        description={getHeaderFieldValue('Description')}
+        />
+        {sectionDescription && (
+          <div className="mb-4 mt-6 p-3 bg-gray-500 rounded">
+            <p className="text-base text-white whitespace-pre-line">{sectionDescription}</p>
+          </div>
+        )}
+      
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
         
         {/* DataSheetGrid */}
@@ -381,9 +382,13 @@ const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectio
             onChange={handleDataChange}
             columns={columns}
             height="100%"
-            headerRowHeight={90}
+            headerRowHeight={60}
             lockRows={isSignedOff}
             className="batch-record-grid"
+            style={{
+              height: '100%',
+              width: '100%'
+            }}
           />
         </div>
         <div className="flex justify-between mt-4">

@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* DataSheetGrid styling */
+.batch-record-grid {
+  --dsg-cell-background-color: white;
+  --dsg-border-color: #e5e7eb;
+  --dsg-selection-border-color: #60a5fa;
+  --dsg-header-text-color: #374151;
+  --dsg-header-active-text-color: #111827;
+}
+
+/* Header styling with better spacing */
+.batch-record-grid .dsg-row.dsg-row-header {
+  background-color: #2dd4bf !important;
+  color: #ffffff !important;
+  padding: 16px 8px !important;
+  height: 60px !important;
+}
+
+.batch-record-grid .dsg-cell.dsg-cell-header {
+  background-color: #2dd4bf !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  padding: 16px 8px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Increase specificity for row colors */
+.batch-record-grid .dsg-container .dsg-row:not(.dsg-row-header) {
+  height: 40px !important;
+}
+
+/* .batch-record-grid .dsg-container .dsg-row:not(.dsg-row-header):nth-of-type(odd) {
+  background-color: #e5f6f6 !important;
+}
+
+.batch-record-grid .dsg-container .dsg-row:not(.dsg-row-header):nth-of-type(even) {
+  background-color: #a8c4fc !important;
+} */
+
+/* Cell styling */
+.batch-record-grid .dsg-container .dsg-cell {
+  padding: 8px !important;
+  border: 1px solid #e5e7eb !important;
+  height: 100% !important;
+}
+
+.batch-record-grid .dsg-container .dsg-cell:focus {
+  outline: 2px solid #60a5fa !important;
+  outline-offset: -2px !important;
+}
+
+/* Hover effect */
+.batch-record-grid .dsg-container .dsg-row:not(.dsg-row-header):hover {
+  filter: brightness(0.95) !important;
+}
+
+/* Your existing root styles */
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
