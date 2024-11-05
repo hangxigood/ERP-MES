@@ -5,6 +5,8 @@ import Template from '../../../models/Template'; // Add this line to import the 
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../lib/authOptions";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   try {
     await dbConnect();
