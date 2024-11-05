@@ -19,21 +19,30 @@ export default function SectionPage({ params }) {
 
     const fetchData = async () => {
       try {
-        // Ensure batchRecordId is a valid ObjectId
-        if (!decodedBatchRecordId || !/^[0-9a-fA-F]{24}$/.test(decodedBatchRecordId)) {
-          throw new Error('Invalid batch record ID');
-        }
-
-        // Ensure sectionName is not undefined
-        if (!sectionName) {
-          throw new Error('Section name is undefined');
-        }
-
+        // Fetch both the current section data and the header data
         const batchRecordResponse = await fetch(`/api/${decodedTemplateName}/${decodedBatchRecordId}/${sectionName}`);
         if (!batchRecordResponse.ok) {
           throw new Error('Failed to fetch batch record data');
         }
         const batchRecordData = await batchRecordResponse.json();
+
+        // If this isn't the header section, fetch the header data
+        if (sectionName !== 'Header') {
+          const headerResponse = await fetch(`/api/${decodedTemplateName}/${decodedBatchRecordId}/Header`);
+          if (headerResponse.ok) {
+            const headerData = await headerResponse.json();
+            // Combine the data
+            batchRecordData.batchInfo = {
+              fields: headerData.fields
+            };
+          }
+        } else {
+          // If this is the header section, use its own data for the header info
+          batchRecordData.batchInfo = {
+            fields: batchRecordData.fields
+          };
+        }
+
         setBatchRecordData(batchRecordData);
         setLoading(false);
 

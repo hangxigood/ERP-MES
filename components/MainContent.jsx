@@ -6,9 +6,11 @@ import PasswordModal from './PasswordModal';
 import { useContext } from 'react';
 import { SharedContext } from '../contexts/BatchRecordContext';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
+import BatchRecordInfo from './BatchRecordInfo';
 
-const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateName, batchRecordId }) => {
-  // State to hold the transformed form data
+const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectionName, templateName, batchRecordId }) => {
+  // Add initialData state
+  const [initialData, setInitialData] = useState(propInitialData);
   const [formData, setFormData] = useState([]);
   // State to track form submission status
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,6 +21,11 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
   const [showSubmitPasswordModal, setShowSubmitPasswordModal] = useState(false);
   const [pendingSubmissionData, setPendingSubmissionData] = useState(null);
   const [initialFormData, setInitialFormData] = useState([]);
+
+  // Update useEffect dependency to use initialData instead of propInitialData
+  useEffect(() => {
+    setInitialData(propInitialData);
+  }, [propInitialData]);
   const { setHasUnsavedChanges, hasUnsavedChanges, setRefreshTrigger } = useContext(SharedContext);
   const { routerPush } = useUnsavedChanges(hasUnsavedChanges);
 
@@ -176,6 +183,57 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
         await onUpdate(pendingSubmissionData, 'In Progress');
         setShowSubmitPasswordModal(false);
         setHasUnsavedChanges(false); // Reset the shared context
+
+        // Refresh the data
+        const refreshResponse = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}`);
+        if (refreshResponse.ok) {
+          const refreshedData = await refreshResponse.json();
+          
+          // Always fetch the header data regardless of section
+          const headerResponse = await fetch(`/api/${templateName}/${batchRecordId}/Header`);
+          if (headerResponse.ok) {
+            const headerData = await headerResponse.json();
+            refreshedData.batchInfo = {
+              fields: headerData.fields
+            };
+          }
+          
+          // Update the initialData state with the refreshed data
+          setInitialData(refreshedData);
+          
+          // Transform the refreshed data into the correct format
+          const rowCount = Math.max(
+            ...refreshedData.fields
+              .filter(field => Array.isArray(field.fieldValue))
+              .map(field => field.fieldValue.length),
+            1
+          );
+
+          const transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
+            const rowData = { id: `row_${rowIndex}` };
+            refreshedData.fields.forEach(field => {
+              if (field.fieldType === 'checkbox') {
+                rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+                  ? (field.fieldValue[rowIndex] === 'true' || field.fieldValue[rowIndex] === true)
+                  : (field.fieldValue === 'true' || field.fieldValue === true);
+              } else if (field.fieldType === 'date') {
+                const dateValue = Array.isArray(field.fieldValue) ? field.fieldValue[rowIndex] : field.fieldValue;
+                rowData[field.fieldName] = dateValue ? new Date(dateValue) : null;
+              } else {
+                rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+                  ? (field.fieldValue[rowIndex] ?? '')
+                  : (field.fieldValue ?? '');
+              }
+            });
+            return rowData;
+          });
+
+          // Update all necessary states with refreshed data
+          setFormData(transformedData);
+          setInitialFormData(transformedData);
+          setHasUnsavedChanges(false);
+          setRefreshTrigger(prev => prev + 1);
+        }
       } else {
         alert('Password verification failed. Please try again.');
       }
@@ -206,8 +264,57 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
         if (response.ok) {
           await onSignoff(comment);
           setShowPasswordModal(false);
-          // Trigger a refresh of the sidebar
-          setRefreshTrigger(prev => prev + 1);
+
+          // Add refresh logic here
+          const refreshResponse = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}`);
+          if (refreshResponse.ok) {
+            const refreshedData = await refreshResponse.json();
+            
+            // Always fetch the header data regardless of section
+            const headerResponse = await fetch(`/api/${templateName}/${batchRecordId}/Header`);
+            if (headerResponse.ok) {
+              const headerData = await headerResponse.json();
+              refreshedData.batchInfo = {
+                fields: headerData.fields
+              };
+            }
+            
+            // Update the initialData state with the refreshed data
+            setInitialData(refreshedData);
+            
+            // Transform the refreshed data into the correct format
+            const rowCount = Math.max(
+              ...refreshedData.fields
+                .filter(field => Array.isArray(field.fieldValue))
+                .map(field => field.fieldValue.length),
+              1
+            );
+
+            const transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
+              const rowData = { id: `row_${rowIndex}` };
+              refreshedData.fields.forEach(field => {
+                if (field.fieldType === 'checkbox') {
+                  rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+                    ? (field.fieldValue[rowIndex] === 'true' || field.fieldValue[rowIndex] === true)
+                    : (field.fieldValue === 'true' || field.fieldValue === true);
+                } else if (field.fieldType === 'date') {
+                  const dateValue = Array.isArray(field.fieldValue) ? field.fieldValue[rowIndex] : field.fieldValue;
+                  rowData[field.fieldName] = dateValue ? new Date(dateValue) : null;
+                } else {
+                  rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+                    ? (field.fieldValue[rowIndex] ?? '')
+                    : (field.fieldValue ?? '');
+                }
+              });
+              return rowData;
+            });
+
+            // Update all necessary states with refreshed data
+            setFormData(transformedData);
+            setInitialFormData(transformedData);
+            setHasUnsavedChanges(false);
+            setRefreshTrigger(prev => prev + 1);
+          }
         } else {
           alert('Password verification failed. Please try again.');
         }
@@ -262,19 +369,23 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
     }
   };
 
+  // get field value from initialData
+  const getHeaderFieldValue = (fieldName) => {
+    if (!initialData?.batchInfo?.fields) return '';
+    const field = initialData.batchInfo.fields.find(f => f.fieldName === fieldName);
+    // Return the full value from the array
+    return Array.isArray(field?.fieldValue) ? field.fieldValue[0] : field?.fieldValue || '';
+  };
+
   if (columns.length === 0) {
     return <div>Loading...</div>; // Or any loading indicator
   }
 
   return (
     <main className="flex flex-col w-full h-full">
-      {sectionDescription && (
-        <div className="mb-4 p-3 bg-gray-500 rounded">
-          <p className="text-base text-white whitespace-pre-line">{sectionDescription}</p>
-        </div>
-      )}
+
       {initialData.signoffs && initialData.signoffs.length > 0 && (
-        <div className="mt-4 p-4 bg-gray-100 rounded text-gray-500">
+        <div className="mt-4 mb-4 p-4 bg-gray-100 rounded text-gray-500">
           <h3 className="font-bold">Sign-offs</h3>
           {initialData.signoffs.map((signoff, index) => (
             <div key={index} className="mb-2 pb-2 border-b last:border-b-0">
@@ -287,6 +398,24 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
           ))}
         </div>
       )}
+      {/* Pass the header data from initialData */}
+      <BatchRecordInfo
+        family={getHeaderFieldValue('Family')}
+        partPrefix={getHeaderFieldValue('Part Prefix')}
+        partNumber={getHeaderFieldValue('Part Number')}
+        lotNumber={getHeaderFieldValue('Lot Number')}
+        documentNumber={getHeaderFieldValue('Document Number')}
+        revision={getHeaderFieldValue('Revision')}
+        date={getHeaderFieldValue('Date')}
+        dateOfManufacture={getHeaderFieldValue('Date of Manufacture')}
+        description={getHeaderFieldValue('Description')}
+        />
+        {sectionDescription && (
+          <div className="mb-4 mt-6 p-3 bg-gray-500 rounded">
+            <p className="text-base text-white whitespace-pre-line">{sectionDescription}</p>
+          </div>
+        )}
+      
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
         
         {/* DataSheetGrid */}
@@ -297,8 +426,13 @@ const MainContent = ({ initialData, onUpdate, onSignoff, sectionName, templateNa
             onChange={handleDataChange}
             columns={columns}
             height="100%"
-            headerRowHeight={90}
+            headerRowHeight={60}
             lockRows={isSignedOff}
+            className="batch-record-grid"
+            style={{
+              height: '100%',
+              width: '100%'
+            }}
           />
         </div>
         <div className="flex justify-between mt-4">
