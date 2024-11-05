@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import Sidebar from "../../../../../components/Sidebar";
 import { createContext, useContext } from 'react';
-import '../../../../../app/styles/globals.css';
+import '../../../../../app/globals.css';
 
 // Create a context for the refresh state
 export const RefreshContext = createContext();

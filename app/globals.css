@@ -5,16 +5,15 @@
 /* DataSheetGrid styling */
 .batch-record-grid {
   --dsg-cell-background-color: white;
-  --dsg-border-color: #e5e7eb;
   --dsg-selection-border-color: #60a5fa;
   --dsg-header-text-color: #374151;
   --dsg-header-active-text-color: #111827;
 }
 
-/* Header styling with better spacing */
+/* Header styling with spacing */
 .batch-record-grid .dsg-row.dsg-row-header {
   background-color: #2dd4bf !important;
-  color: #ffffff !important;
+  color: #374151 !important;
   padding: 16px 8px !important;
   height: 60px !important;
 }
@@ -22,7 +21,7 @@
 .batch-record-grid .dsg-cell.dsg-cell-header {
   background-color: #2dd4bf !important;
   font-weight: 600 !important;
-  color: #ffffff !important;
+  color: #374151 !important;
   padding: 16px 8px !important;
   display: flex !important;
   align-items: center !important;
