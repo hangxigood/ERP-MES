@@ -189,20 +189,17 @@ const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectio
         if (refreshResponse.ok) {
           const refreshedData = await refreshResponse.json();
           
-          // If this isn't the header section, fetch the header data
-          if (sectionName !== 'Header') {
-            const headerResponse = await fetch(`/api/${templateName}/${batchRecordId}/Header`);
-            if (headerResponse.ok) {
-              const headerData = await headerResponse.json();
-              refreshedData.batchInfo = {
-                fields: headerData.fields
-              };
-            }
-          } else {
+          // Always fetch the header data regardless of section
+          const headerResponse = await fetch(`/api/${templateName}/${batchRecordId}/Header`);
+          if (headerResponse.ok) {
+            const headerData = await headerResponse.json();
             refreshedData.batchInfo = {
-              fields: refreshedData.fields
+              fields: headerData.fields
             };
           }
+          
+          // Update the initialData state with the refreshed data
+          setInitialData(refreshedData);
           
           // Transform the refreshed data into the correct format
           const rowCount = Math.max(
@@ -234,9 +231,7 @@ const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectio
           // Update all necessary states with refreshed data
           setFormData(transformedData);
           setInitialFormData(transformedData);
-          setHasChanges(false);
-          // Update the initialData state with the refreshed data
-          setInitialData && setInitialData(refreshedData);
+          setHasUnsavedChanges(false);
           setRefreshTrigger(prev => prev + 1);
         }
       } else {
@@ -269,8 +264,57 @@ const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectio
         if (response.ok) {
           await onSignoff(comment);
           setShowPasswordModal(false);
-          // Trigger a refresh of the sidebar
-          setRefreshTrigger(prev => prev + 1);
+
+          // Add refresh logic here
+          const refreshResponse = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}`);
+          if (refreshResponse.ok) {
+            const refreshedData = await refreshResponse.json();
+            
+            // Always fetch the header data regardless of section
+            const headerResponse = await fetch(`/api/${templateName}/${batchRecordId}/Header`);
+            if (headerResponse.ok) {
+              const headerData = await headerResponse.json();
+              refreshedData.batchInfo = {
+                fields: headerData.fields
+              };
+            }
+            
+            // Update the initialData state with the refreshed data
+            setInitialData(refreshedData);
+            
+            // Transform the refreshed data into the correct format
+            const rowCount = Math.max(
+              ...refreshedData.fields
+                .filter(field => Array.isArray(field.fieldValue))
+                .map(field => field.fieldValue.length),
+              1
+            );
+
+            const transformedData = Array.from({ length: rowCount }, (_, rowIndex) => {
+              const rowData = { id: `row_${rowIndex}` };
+              refreshedData.fields.forEach(field => {
+                if (field.fieldType === 'checkbox') {
+                  rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+                    ? (field.fieldValue[rowIndex] === 'true' || field.fieldValue[rowIndex] === true)
+                    : (field.fieldValue === 'true' || field.fieldValue === true);
+                } else if (field.fieldType === 'date') {
+                  const dateValue = Array.isArray(field.fieldValue) ? field.fieldValue[rowIndex] : field.fieldValue;
+                  rowData[field.fieldName] = dateValue ? new Date(dateValue) : null;
+                } else {
+                  rowData[field.fieldName] = Array.isArray(field.fieldValue) 
+                    ? (field.fieldValue[rowIndex] ?? '')
+                    : (field.fieldValue ?? '');
+                }
+              });
+              return rowData;
+            });
+
+            // Update all necessary states with refreshed data
+            setFormData(transformedData);
+            setInitialFormData(transformedData);
+            setHasUnsavedChanges(false);
+            setRefreshTrigger(prev => prev + 1);
+          }
         } else {
           alert('Password verification failed. Please try again.');
         }
