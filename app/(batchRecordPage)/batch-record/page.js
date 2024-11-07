@@ -44,6 +44,7 @@ export default function BatchRecordsList() {
             <tr>
               <th className="px-4 py-2 border-b">ID</th>
               <th className="px-4 py-2 border-b">Template Name</th>
+              <th className="px-4 py-2 border-b">Lot Number</th>
               <th className="px-4 py-2 border-b">Status</th>
               <th className="px-4 py-2 border-b">Created By</th>
               <th className="px-4 py-2 border-b">Created At</th>
@@ -57,6 +58,7 @@ export default function BatchRecordsList() {
               <tr key={record.id}>
                 <td className="px-4 py-2 border-b">{record.id}</td>
                 <td className="px-4 py-2 border-b">{record.templateName}</td>
+                <td className="px-4 py-2 border-b">{record.lotNumber}</td>
                 <td className="px-4 py-2 border-b">{record.status}</td>
                 <td className="px-4 py-2 border-b">{record.createdBy}</td>
                 <td className="px-4 py-2 border-b">{new Date(record.createdAt).toLocaleString()}</td>
