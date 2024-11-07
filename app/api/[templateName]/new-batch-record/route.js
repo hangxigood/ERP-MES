@@ -81,7 +81,6 @@ export async function POST(request, { params }) {
         };
 
         await newBatchRecordData.save();
-        console.log("Saving successful with order:", newBatchRecordData.order);
         batchRecordDataIds.push(newBatchRecordData._id);
       } catch (error) {
         console.error('Error creating batch record data:', error);
