@@ -427,7 +427,7 @@ const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectio
             columns={columns}
             height="100%"
             headerRowHeight={60}
-            lockRows={isSignedOff}
+            lockRows="true"
             className="batch-record-grid"
             style={{
               height: '100%',
