@@ -82,6 +82,31 @@ const Sidebar = ({ availableSections = [] }) => {
     }
   };
 
+  const handleDuplicate = async (sectionName) => {
+    try {
+      const response = await fetch(`/api/${templateName}/${batchRecordId}/sections/duplicate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          templateName,
+          batchRecordId,
+          sectionName
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to duplicate section');
+      }
+      
+      // Refresh the sections list
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      console.error('Error duplicating section:', error);
+    }
+  };
+
   return (
     <nav className={`transition-all duration-300 flex-shrink-0 bg-gray-100 border-r border-gray-200 ${isExpanded ? 'md:w-64' : 'w-16'}`}>
       <div className={`flex flex-col h-full ${isExpanded ? 'p-4' : 'p-2'}`}>
@@ -112,7 +137,7 @@ const Sidebar = ({ availableSections = [] }) => {
                   {item.duplicatable && !item.isDuplicate && (
                     <button
                       className="ml-2 w-6 h-6 flex items-center justify-center text-teal-500"
-                      onClick={() => {/* Add duplicate handler here */}}
+                      onClick={() => handleDuplicate(item.text)}
                     >
                       +
                     </button>

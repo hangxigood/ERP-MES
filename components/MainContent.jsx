@@ -436,30 +436,6 @@ const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectio
           />
         </div>
         <div className="flex justify-between mt-4">
-          {initialData.duplicatable && (
-            <div className="flex gap-2">
-              <button 
-                type="button"
-                onClick={handleDuplicate}
-                className="px-4 py-2 rounded bg-teal-300 hover:bg-teal-400"
-              >
-                +
-              </button>
-              <button 
-                type="button"
-                onClick={handleDelete}
-                disabled={!initialData.isDuplicate}
-                className={`px-4 py-2 rounded ${
-                  initialData.isDuplicate 
-                    ? 'bg-red-300 hover:bg-red-400' 
-                    : 'bg-gray-300 cursor-not-allowed'
-                }`}
-              >
-                -
-              </button>
-            </div>
-          )}
-          {!initialData.duplicatable && <div></div>} {/* Spacer for layout consistency */}
           <div className="flex gap-2">
             <button 
               type="submit" 
