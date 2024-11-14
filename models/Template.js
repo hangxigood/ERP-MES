@@ -10,6 +10,7 @@ const sectionSchema = new mongoose.Schema({
   sectionName: { type: String, required: true },
   sectionDescription: { type: String, required: false },
   order: { type: Number, required: true },
+  duplicatable: { type: Boolean, required: true, default: false },
   fields: [fieldSchema]
 }, { _id: false });
 

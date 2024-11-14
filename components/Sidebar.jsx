@@ -28,15 +28,19 @@ const Sidebar = ({ availableSections = [] }) => {
   const pathSegments = decodedPathname.split('/').filter(Boolean);
   const templateName = pathSegments[0] || '';
   const batchRecordId = pathSegments[1] || '';
-  const { hasUnsavedChanges } = useContext(SharedContext);
+  const { hasUnsavedChanges, refreshTrigger, setRefreshTrigger } = useContext(SharedContext);
   const { routerPush } = useUnsavedChanges(hasUnsavedChanges);
 
   const updatedSectionItems = availableSections.map(section => ({
     text: section.displayName,
     href: `/${templateName}/${batchRecordId}/${section.name}`,
     isActive: `/${templateName}/${batchRecordId}/${section.name}` === decodedPathname,
-    isSigned: section.isSigned
+    isSigned: section.isSigned,
+    duplicatable: section.duplicatable,
+    isDuplicate: section.isDuplicate
   }));
+
+  console.log(updatedSectionItems);
 
   useEffect(() => {
     const handleResize = () => {
@@ -52,6 +56,31 @@ const Sidebar = ({ availableSections = [] }) => {
     // Clean up
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const handleDeleteDuplicate = async (sectionName) => {
+    try {
+      // Check if we're deleting the current section
+      const currentSection = decodeURIComponent(pathSegments[2] || '');
+      const isCurrentSection = currentSection === sectionName;
+      
+      // If deleting current section, navigate to parent first
+      if (isCurrentSection) {
+        await routerPush(`/${templateName}/${batchRecordId}`);
+      }
+
+      const response = await fetch(`/api/${templateName}/${batchRecordId}/sections/${sectionName}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete section');
+      }
+      
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      console.error('Error deleting section:', error);
+    }
+  };
 
   return (
     <nav className={`transition-all duration-300 flex-shrink-0 bg-gray-100 border-r border-gray-200 ${isExpanded ? 'md:w-64' : 'w-16'}`}>
@@ -72,13 +101,31 @@ const Sidebar = ({ availableSections = [] }) => {
             <div className="text-lg font-bold text-teal-300 mb-4">Sections</div>
             {updatedSectionItems.length > 0 ? (
               updatedSectionItems.map((item, index) => (
-                <SafeLink 
-                  key={index}
-                  href={item.href}
-                  routerPush={routerPush}
-                >
-                  <SectionItem {...item} />
-                </SafeLink>
+                <div key={index} className="flex items-center">
+                  <SafeLink 
+                    href={item.href}
+                    routerPush={routerPush}
+                    className="flex-grow"
+                  >
+                    <SectionItem {...item} />
+                  </SafeLink>
+                  {item.duplicatable && !item.isDuplicate && (
+                    <button
+                      className="ml-2 w-6 h-6 flex items-center justify-center text-teal-500"
+                      onClick={() => {/* Add duplicate handler here */}}
+                    >
+                      +
+                    </button>
+                  )}
+                  {item.isDuplicate && (
+                    <button
+                      className="ml-2 w-6 h-6 flex items-center justify-center text-teal-500"
+                      onClick={() => handleDeleteDuplicate(item.text)}
+                    >
+                      -
+                    </button>
+                  )}
+                </div>
               ))
             ) : (
               <div>No sections available</div>

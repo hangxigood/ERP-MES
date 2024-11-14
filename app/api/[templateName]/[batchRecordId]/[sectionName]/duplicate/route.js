@@ -69,7 +69,8 @@ export async function POST(request, { params }) {
       sectionDescription: templateSection.sectionDescription,
       createdBy: session.user.id,
       updatedBy: session.user.id,
-      isDuplicate: true
+      isDuplicate: true,
+      duplicatable: originalSection.duplicatable
     });
 
     // Add user and client info before saving

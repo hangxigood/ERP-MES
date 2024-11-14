@@ -67,7 +67,8 @@ export async function POST(request, { params }) {
           fields: fields,
           createdBy: session.user.id,
           updatedBy: session.user.id,
-          sectionDescription: section.sectionDescription
+          sectionDescription: section.sectionDescription,
+          duplicatable: section.duplicatable
         });
 
         // Add user and client info before saving

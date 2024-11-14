@@ -5,6 +5,7 @@ import BatchRecordData from '../../../../../models/BatchRecordData';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../../lib/authOptions";
 import mongoose from 'mongoose';
+import { Duplex } from 'stream';
 
 export async function GET(request, { params }) {
   try {
@@ -31,7 +32,7 @@ export async function GET(request, { params }) {
     // Find all batch record data sections for this batch record
     const batchRecordSections = await BatchRecordData.find({
       batchRecord: batchRecordId
-    }).select('sectionName signoffs order')
+    }).select('sectionName signoffs order duplicatable isDuplicate')
       .sort({ order: 1 });
 
     // Transform the sections data
@@ -39,7 +40,9 @@ export async function GET(request, { params }) {
       name: section.sectionName,
       displayName: section.sectionName,
       isSigned: section.signoffs && section.signoffs.length > 0,
-      order: section.order
+      order: section.order,
+      duplicatable: section.duplicatable,
+      isDuplicate: section.isDuplicate
     }));
 
     return NextResponse.json(sections);

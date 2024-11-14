@@ -9,6 +9,8 @@ const fieldSchema = new mongoose.Schema({
 const batchRecordDataSchema = new mongoose.Schema({
   batchRecord: { type: mongoose.Schema.Types.ObjectId, ref: 'BatchRecord', required: true },
   sectionName: { type: String, required: true },
+  sectionDescription: { type: String },
+  duplicatable: { type: Boolean, default: false },
   order: { type: Number, required: true }, // Section order
   status: { type: String, required: true, enum: ['Not Started', 'In Progress', 'Completed'] },
   fields: [fieldSchema],
