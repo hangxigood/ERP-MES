@@ -3,10 +3,10 @@ name: Test Coverage
 on:
   # Trigger on push to specific branch
   push:
-    branches: [ main, develop ]
+    branches: [ main, Hangxi ]
   # Trigger on PRs to specific branch
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, Hangxi ]
   # Optional: Manual trigger
   workflow_dispatch:
 
@@ -27,4 +27,4 @@ jobs:
         run: npm ci
 
       - name: Run tests with coverage
-        run: npm test -- --coverage
+        run: npm test --coverage
