@@ -417,4 +417,148 @@ describe('MainContent', () => {
 
     // Rest of the test...
   });
+
+  it('handles successful sign-off with data refresh', async () => {
+    const mockOnSignoff = jest.fn();
+    const refreshedData = {
+      fields: [
+        {
+          fieldName: 'RefreshedField',
+          fieldType: 'text',
+          fieldValue: ['new value']
+        }
+      ]
+    };
+
+    const headerData = {
+      fields: [
+        {
+          fieldName: 'Family',
+          fieldValue: ['Updated Family']
+        }
+      ]
+    };
+
+    // Setup fetch mock sequence
+    global.fetch
+      .mockImplementationOnce(() => Promise.resolve({ ok: true })) // Password verification
+      .mockImplementationOnce(() => Promise.resolve({ // Section data
+        ok: true,
+        json: () => Promise.resolve(refreshedData)
+      }))
+      .mockImplementationOnce(() => Promise.resolve({ // Header data
+        ok: true,
+        json: () => Promise.resolve(headerData)
+      }));
+
+    render(
+      <MainContent 
+        initialData={mockInitialData}
+        onSignoff={mockOnSignoff}
+        templateName="test"
+        batchRecordId="123"
+        sectionName="section1"
+      />
+    );
+
+    // Click sign-off button
+    const signoffButton = screen.getByText('Sign Off');
+    fireEvent.click(signoffButton);
+
+    // Fill and submit password
+    await waitFor(() => {
+      expect(screen.getByLabelText('Password:')).toBeInTheDocument();
+    });
+    
+    const passwordInput = screen.getByLabelText('Password:');
+    fireEvent.change(passwordInput, { target: { value: 'password' } });
+    
+    const confirmButton = screen.getByRole('button', { name: 'Confirm Sign-off' });
+    fireEvent.click(confirmButton);
+
+    // Verify the refresh sequence
+    await waitFor(() => {
+      expect(mockOnSignoff).toHaveBeenCalled();
+      expect(screen.getByText('RefreshedField')).toBeInTheDocument();
+      expect(screen.getByText('Updated Family')).toBeInTheDocument();
+    });
+  });
+
+  it('handles failed sign-off with error message', async () => {
+    const mockOnSignoff = jest.fn();
+    
+    // Mock fetch to fail password verification
+    global.fetch.mockImplementationOnce(() => 
+      Promise.resolve({ ok: false })
+    );
+
+    render(
+      <MainContent 
+        initialData={mockInitialData}
+        onSignoff={mockOnSignoff}
+      />
+    );
+
+    // Click sign-off button
+    const signoffButton = screen.getByText('Sign Off');
+    fireEvent.click(signoffButton);
+
+    // Fill and submit password
+    await waitFor(() => {
+      expect(screen.getByLabelText('Password:')).toBeInTheDocument();
+    });
+    
+    const passwordInput = screen.getByLabelText('Password:');
+    fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });
+    
+    const confirmButton = screen.getByRole('button', { name: 'Confirm Sign-off' });
+    fireEvent.click(confirmButton);
+
+    // Verify error message
+    await waitFor(() => {
+      expect(mockOnSignoff).not.toHaveBeenCalled();
+      expect(alertMock).toHaveBeenCalledWith('Password verification failed. Please try again.');
+    });
+  });
+
+  it('handles failed data refresh after successful sign-off', async () => {
+    const mockOnSignoff = jest.fn();
+    
+    // Setup fetch mock sequence
+    global.fetch
+      .mockImplementationOnce(() => Promise.resolve({ ok: true })) // Password verification success
+      .mockImplementationOnce(() => Promise.resolve({ ok: false })); // Section data fetch fails
+
+    render(
+      <MainContent 
+        initialData={mockInitialData}
+        onSignoff={mockOnSignoff}
+        templateName="test"
+        batchRecordId="123"
+        sectionName="section1"
+      />
+    );
+
+    // Click sign-off button
+    const signoffButton = screen.getByText('Sign Off');
+    fireEvent.click(signoffButton);
+
+    // Fill and submit password
+    await waitFor(() => {
+      expect(screen.getByLabelText('Password:')).toBeInTheDocument();
+    });
+    
+    const passwordInput = screen.getByLabelText('Password:');
+    fireEvent.change(passwordInput, { target: { value: 'password' } });
+    
+    const confirmButton = screen.getByRole('button', { name: 'Confirm Sign-off' });
+    fireEvent.click(confirmButton);
+
+    // Verify the sequence
+    await waitFor(() => {
+      expect(mockOnSignoff).toHaveBeenCalled();
+      // Original data should still be visible since refresh failed
+      expect(screen.getByText('TestField1')).toBeInTheDocument();
+    });
+  });
 });

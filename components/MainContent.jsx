@@ -331,48 +331,6 @@ const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectio
     }
   };
 
-  const handleDuplicate = async () => {
-    try {
-      const response = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}/duplicate`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to duplicate section');
-      }
-
-      setRefreshTrigger(prev => prev + 1);
-    } catch (error) {
-      console.error('Error duplicating section:', error);
-      alert('Error duplicating section');
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!initialData.isDuplicate) {
-      alert('Cannot delete the main section');
-      return;
-    }
-    
-    try {
-      const response = await fetch(`/api/${templateName}/${batchRecordId}/${sectionName}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete section');
-      }
-
-      // Navigate back to the main section using routerPush
-      const mainSectionName = sectionName.split(' ')[0];
-      routerPush(`/${templateName}/${batchRecordId}/${mainSectionName}`);
-      setRefreshTrigger(prev => prev + 1);
-    } catch (error) {
-      console.error('Error deleting section:', error);
-      alert('Error deleting section');
-    }
-  };
-
   // get field value from initialData
   const getHeaderFieldValue = (fieldName) => {
     if (!initialData?.batchInfo?.fields) return '';
