@@ -92,6 +92,15 @@ global.setTestUserRole = (role) => {
   currentMockSession = mockSessions[role];
 };
 
+// Mock ResizeObserver
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+global.ResizeObserver = ResizeObserverMock;
+
 /**
  * Mock implementation of next-auth/react
  * @type {Object}

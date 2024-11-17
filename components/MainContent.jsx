@@ -141,8 +141,12 @@ const MainContent = ({ initialData: propInitialData, onUpdate, onSignoff, sectio
     
     // Compare new data with initial data
     const hasDataChanged = JSON.stringify(newData) !== JSON.stringify(initialFormData);
-    setHasUnsavedChanges(hasDataChanged);
-  }, [initialFormData, setHasUnsavedChanges]);
+    
+    // Only update if the change state is different
+    if (hasDataChanged !== hasUnsavedChanges) {
+      setHasUnsavedChanges(hasDataChanged);
+    }
+  }, [initialFormData, setHasUnsavedChanges, hasUnsavedChanges]);
 
   // Handle form submission
   const handleSubmit = async (e) => {
