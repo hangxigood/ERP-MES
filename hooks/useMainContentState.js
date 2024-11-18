@@ -46,6 +46,8 @@ export function useMainContentState({
     setInitialData(propInitialData);
   }, [propInitialData]);
 
+
+  // Update form data and check for unsaved changes
   useEffect(() => {
     if (!initialData?.fields) {
       setFormData([]);
@@ -59,7 +61,7 @@ export function useMainContentState({
     setHasUnsavedChanges(false);
     setSectionDescription(initialData.sectionDescription || '');
     setIsSignedOff(Boolean(initialData.signoffs?.length));
-  }, [initialData, setHasUnsavedChanges]);
+  }, [initialData]);
 
   const handleDataChange = useCallback((newData) => {
     setFormData(newData);
