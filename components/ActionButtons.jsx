@@ -1,3 +1,19 @@
+/**
+ * @fileoverview Action buttons component for batch record form operations.
+ * Provides submit and sign-off functionality with proper state handling.
+ * 
+ * @module components/ActionButtons
+ */
+
+/**
+ * Action buttons component for form operations
+ * 
+ * @param {Object} props - Component props
+ * @param {boolean} props.isSignedOff - Whether the form is signed off
+ * @param {boolean} props.hasUnsavedChanges - Whether there are unsaved changes
+ * @param {Function} props.onSignoff - Handler for sign-off action
+ * @returns {React.ReactElement} Action buttons component
+ */
 export const ActionButtons = ({ 
   isSignedOff, 
   hasUnsavedChanges, 
