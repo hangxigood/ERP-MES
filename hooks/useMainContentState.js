@@ -32,7 +32,6 @@ export function useMainContentState({
 }) {
   const [initialData, setInitialData] = useState(propInitialData);
   const [formData, setFormData] = useState([]);
-  const [sectionDescription, setSectionDescription] = useState('');
   const [isSignedOff, setIsSignedOff] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showSubmitPasswordModal, setShowSubmitPasswordModal] = useState(false);
@@ -41,11 +40,11 @@ export function useMainContentState({
   const { setHasUnsavedChanges, hasUnsavedChanges, setRefreshTrigger } = useContext(SharedContext);
 
   const columns = useColumns(initialData?.fields, isSignedOff);
+  const sectionDescription = initialData?.sectionDescription || '';
 
   useEffect(() => {
     setInitialData(propInitialData);
   }, [propInitialData]);
-
 
   // Update form data and check for unsaved changes
   useEffect(() => {
@@ -59,7 +58,6 @@ export function useMainContentState({
     setFormData(transformedData);
     setInitialFormData(transformedData);
     setHasUnsavedChanges(false);
-    setSectionDescription(initialData.sectionDescription || '');
     setIsSignedOff(Boolean(initialData.signoffs?.length));
   }, [initialData]);
 
