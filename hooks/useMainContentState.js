@@ -61,13 +61,42 @@ export function useMainContentState({
     setIsSignedOff(Boolean(initialData.signoffs?.length));
   }, [initialData]);
 
+  /**
+   * Handle form data changes and check for unsaved changes
+   * 
+   * @param {Array} newData - Updated form data
+   * @returns {void}
+   */
   const handleDataChange = useCallback((newData) => {
-    setFormData(newData);
-    const hasDataChanged = JSON.stringify(newData) !== JSON.stringify(initialFormData);
-    if (hasDataChanged !== hasUnsavedChanges) {
-      setHasUnsavedChanges(hasDataChanged);
+    // Validate input
+    if (!newData || !Array.isArray(newData)) {
+        return;
     }
-  }, [initialFormData, setHasUnsavedChanges, hasUnsavedChanges]);
+
+    // Update form data immediately
+    setFormData(newData);
+
+    // Skip change detection if already marked as changed
+    if (hasUnsavedChanges) {
+        return;
+    }
+
+    // Quick length comparison first
+    if (newData.length !== initialFormData.length) {
+        setHasUnsavedChanges(true);
+        return;
+    }
+
+    // Efficient field-by-field comparison
+    const hasChanges = newData.some((row, index) => {
+        const initialRow = initialFormData[index];
+        return Object.keys(row).some(key => row[key] !== initialRow[key]);
+    });
+
+    if (hasChanges) {
+        setHasUnsavedChanges(true);
+    }
+    }, [initialFormData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
