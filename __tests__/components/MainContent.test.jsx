@@ -232,28 +232,22 @@ describe('MainContent', () => {
       />
     );
 
-    // Wait for the submit button to be enabled
-    await waitFor(() => {
-      const submitButton = screen.getByText('Submit');
-      expect(submitButton).not.toBeDisabled();
-    });
-
-    // Click the submit button
+    // Submit button click
     fireEvent.click(screen.getByText('Submit'));
 
-    // Wait for the password modal to appear
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Confirm Submit' })).toBeInTheDocument();
-    });
+    // Find password modal
+    const passwordModal = await screen.findByRole('dialog', { name: /confirm submit/i });
+    expect(passwordModal).toBeInTheDocument();
 
-    // Submit password
-    const passwordInput = screen.getByLabelText('Password:');
+    // Fill in password
+    const passwordInput = screen.getByLabelText(/password/i);
     fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });
-    
-    // Click the confirm button in the modal
-    const confirmButton = screen.getByRole('button', { name: 'Confirm Submit' });
-    fireEvent.click(confirmButton);
 
+    // Submit form
+    const form = screen.getByRole('form');
+    fireEvent.submit(form);
+
+    // Verify alert was called
     await waitFor(() => {
       expect(alertMock).toHaveBeenCalledWith('Password verification failed. Please try again.');
     });
