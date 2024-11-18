@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import { SharedContext } from '../contexts/BatchRecordContext';
 import { useColumns } from './useColumns';  // Updated import path
-import { transformFormData, refreshFormData } from '../utils/formDataTransformers';
+import { transformFormData, refreshFormData, transformSubmissionData } from '../utils/formDataTransformers';
 
 /**
  * Custom hook for managing batch record form state and operations
@@ -100,20 +100,7 @@ export function useMainContentState({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const submissionData = initialData.fields.map(field => ({
-      fieldName: field.fieldName,
-      fieldType: field.fieldType,
-      fieldValue: formData.map(row => {
-        if (field.fieldType === 'checkbox') {
-          return row[field.fieldName] ? 'true' : 'false';
-        } else if (field.fieldType === 'date') {
-          return row[field.fieldName] ? row[field.fieldName].toISOString().split('T')[0] : '';
-        }
-        return row[field.fieldName] || '';
-      })
-    }));
-
+    const submissionData = transformSubmissionData(initialData.fields, formData);
     setShowSubmitPasswordModal(true);
     handleSubmitPasswordVerify.current = async (password) => {
       try {

@@ -47,3 +47,25 @@ export const transformFormData = (data) => {
  * @type {Function}
  */
 export const refreshFormData = transformFormData;
+
+/**
+ * Transforms grid data into API submission format
+ * 
+ * @param {Array} fields - Field definitions from initial data
+ * @param {Array} formData - Current form data from grid
+ * @returns {Array} Transformed data for API submission
+ */
+export const transformSubmissionData = (fields, formData) => {
+  return fields.map(field => ({
+    fieldName: field.fieldName,
+    fieldType: field.fieldType,
+    fieldValue: formData.map(row => {
+      if (field.fieldType === 'checkbox') {
+        return row[field.fieldName] ? 'true' : 'false';
+      } else if (field.fieldType === 'date') {
+        return row[field.fieldName] ? row[field.fieldName].toISOString().split('T')[0] : '';
+      }
+      return row[field.fieldName] || '';
+    })
+  }));
+};
