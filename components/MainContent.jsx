@@ -94,9 +94,14 @@ const MainContent = ({
             columns={columns}
             height="100%"
             headerRowHeight={60}
+            rowHeight={40}
             lockRows="true"
             className="batch-record-grid"
             style={{ height: '100%', width: '100%' }}
+            autoRowHeight={true}
+            rightElementProps={{
+              style: { overflowY: 'auto' }
+            }}
           />
         </div>
 

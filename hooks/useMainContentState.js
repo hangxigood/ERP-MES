@@ -40,18 +40,7 @@ export function useMainContentState({
 
   const { setHasUnsavedChanges, hasUnsavedChanges, setRefreshTrigger } = useContext(SharedContext);
 
-  const maxLengths = initialData?.fields?.reduce((acc, field) => {
-    const maxFieldLength = Math.max(
-      field.fieldName.length,
-      ...(Array.isArray(field.fieldValue) 
-        ? field.fieldValue.map(value => String(value).length)
-        : [String(field.fieldValue).length])
-    );
-    acc[field.fieldName] = maxFieldLength;
-    return acc;
-  }, {}) || {};
-
-  const columns = useColumns(initialData?.fields, maxLengths, isSignedOff);
+  const columns = useColumns(initialData?.fields, isSignedOff);
 
   useEffect(() => {
     setInitialData(propInitialData);
