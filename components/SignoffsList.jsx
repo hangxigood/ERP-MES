@@ -1,4 +1,20 @@
+/**
+ * @fileoverview Component for displaying a list of sign-offs in a batch record.
+ * Shows sign-off history including who signed, when, and any comments.
+ * 
+ * @module components/SignoffsList
+ */
 
+/**
+ * Sign-offs list display component
+ * 
+ * @param {Object} props - Component props
+ * @param {Array<Object>} [props.signoffs] - Array of sign-off records
+ * @param {string} props.signoffs[].signedBy - Name of person who signed
+ * @param {string} props.signoffs[].signedAt - Timestamp of sign-off
+ * @param {string} [props.signoffs[].comment] - Optional comment for sign-off
+ * @returns {React.ReactElement|null} Sign-offs list or null if no sign-offs
+ */
 export const SignoffsList = ({ signoffs }) => {
   if (!signoffs?.length) return null;
   
