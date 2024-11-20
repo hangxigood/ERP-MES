@@ -66,18 +66,6 @@ const MainContent = ({
   return (
     <main className="flex flex-col w-full h-full">
       <SignoffsList signoffs={initialData.signoffs} />
-      
-      <BatchRecordInfo
-        family={getHeaderFieldValue('Family')}
-        partPrefix={getHeaderFieldValue('Part Prefix')}
-        partNumber={getHeaderFieldValue('Part Number')}
-        lotNumber={getHeaderFieldValue('Lot Number')}
-        documentNumber={getHeaderFieldValue('Document Number')}
-        revision={getHeaderFieldValue('Revision')}
-        date={getHeaderFieldValue('Date')}
-        dateOfManufacture={getHeaderFieldValue('Date of Manufacture')}
-        description={getHeaderFieldValue('Description')}
-      />
 
       {sectionDescription && (
         <div className="mb-4 mt-6 p-3 bg-gray-500 rounded">

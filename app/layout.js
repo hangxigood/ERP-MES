@@ -6,8 +6,8 @@ import { initChangeStreams } from '../lib/changeStreamInit';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "SMI Batch Record System",
-  description: "Electronic Batch Record System for Southmedic Inc.",
+  title: "DOGE Batch Record System",
+  description: "Electronic Batch Record System for DOGE Inc.",
 };
 
 export default function RootLayout({ children }) {

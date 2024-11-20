@@ -7,7 +7,7 @@ import InputField from "../../../components/ui/InputField";
 import Button from "../../../components/ui/Button";
 import Link from "../../../components/ui/Link";
 import Image from 'next/image';
-import logo from "../../../public/images/SMI_logo.png";
+import logo from "../../../public/images/logo.png";
 import NextLink from "next/link";
 
 
@@ -63,6 +63,9 @@ function LoginPage() {
                 <h1 className="self-center mb-5 text-1xl text-gray-500">
                     BATCH RECORD SYSTEM
                 </h1>
+                <p className="self-center mb-5 text-1xl text-gray-500">
+                admin@DOGE.com/SMIpassword
+                </p>
                 {error && <p className="text-red-500 text-center mb-4">{error}</p>}
                 <form onSubmit={handleSubmit}>
                     <InputField label="Email" id="email" type="email" required />
