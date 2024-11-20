@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Button from "../../../components/ui/Button";
 import NextLink from "next/link";
 import Image from 'next/image';
-import logo from "../../../public/images/SMI_logo.png";
+import logo from "../../../public/images/logo.png";
 
 // Add this export to prevent static generation
 export const dynamic = 'force-dynamic';

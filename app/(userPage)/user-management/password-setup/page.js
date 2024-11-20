@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import logo from "../../../../public/images/SMI_logo.png";
+import logo from "../../../../public/images/logo.png";
 
 export default function SetPassword() {
   const [password, setPassword] = useState('');

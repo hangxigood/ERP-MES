@@ -5,7 +5,7 @@ import InputField from "../../../components/ui/InputField";
 import Button from "../../../components/ui/Button";
 import NextLink from "next/link";
 import Image from 'next/image';
-import logo from "../../../public/images/SMI_logo.png";
+import logo from "../../../public/images/logo.png";
 import { useRouter } from "next/navigation";
  
 function ForgotPasswordPage() {
