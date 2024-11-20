@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Header from "../../../../../components/Header";
 import { useSession } from "next-auth/react";
 import Sidebar from "../../../../../components/Sidebar";
+import EditHistorySidebar from "../../../../../components/EditHistorySidebar";
 import { SharedContext } from '../../../../../contexts/BatchRecordContext';
 
 /**
@@ -51,6 +52,12 @@ export default function BatchRecordLayout({ children }) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   /**
+   * State for managing the visibility of the history sidebar
+   * @type {[boolean, Function]}
+   */
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  /**
    * Fetches available sections when component mounts or when dependencies change
    * 
    * Dependencies:
@@ -89,6 +96,23 @@ export default function BatchRecordLayout({ children }) {
     }
   }, [templateName, batchRecordId, refreshTrigger, status]);
 
+  // Add keyboard shortcut handler
+  const handleKeyPress = useCallback((event) => {
+    if (event.key === 'Escape' && isHistoryOpen) {
+      setIsHistoryOpen(false);
+    }
+    // Optional: Add Ctrl/Cmd + H to toggle
+    if ((event.ctrlKey || event.metaKey) && event.key === 'h') {
+      event.preventDefault();
+      setIsHistoryOpen(prev => !prev);
+    }
+  }, [isHistoryOpen]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [handleKeyPress]);
+
   return (
     <SharedContext.Provider value={{ 
       refreshTrigger, 
@@ -98,11 +122,25 @@ export default function BatchRecordLayout({ children }) {
     }}>
       <div className="flex flex-col min-h-screen">
         <Header title={`BATCH RECORD: ${decodeURIComponent(templateName)}`} />
-        <div className="flex flex-1">
+        <div className="flex flex-1 relative">
           <Sidebar availableSections={availableSections} />
           <main className="flex-grow p-6 overflow-auto">
             {children}
+            <button
+              onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+              className="fixed right-0 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white px-2 py-4 rounded-l-md hover:bg-blue-600"
+              title={`${isHistoryOpen ? 'Hide' : 'Show'} History (Ctrl+H)`}
+            >
+              {isHistoryOpen ? '>' : '<'}
+            </button>
           </main>
+          <EditHistorySidebar
+            isOpen={isHistoryOpen}
+            onClose={() => setIsHistoryOpen(false)}
+            templateName={templateName}
+            batchRecordId={batchRecordId}
+            sectionName={params.sectionName}
+          />
         </div>
       </div>
     </SharedContext.Provider>
