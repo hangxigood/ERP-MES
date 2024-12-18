@@ -1,41 +1,33 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";  // Changed from next/router
-import InputField from "../../../components/ui/InputField";
-import Button from "../../../components/ui/Button";
-import Link from "../../../components/ui/Link";
+import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import logo from "../../../public/images/logo.png";
 import NextLink from "next/link";
-
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 function LoginPage() {
-    const [error, setError] = useState("");
+    const { register, handleSubmit, formState: { errors } } = useForm();
     const router = useRouter();
-    // useSession is used to check the session on the client side for a client component.
     const { status } = useSession();
 
-    // Redirect if already logged in
     useEffect(() => {
         if (status === "authenticated") {
             router.push("/");
         }
     }, [status, router]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        /**
-         * 1. signIn is used to sign in the user with the credentials.
-         * 2. The credentials are passed to signIn, which is the recommended way to configure the authentication.
-         * 3. The redirect is set to false to prevent the user from being redirected to the login page.
-         * 4. The email and password are passed to signIn, which is the recommended way to configure the authentication.    
-         */
+    const onSubmit = async (data) => {
         const result = await signIn('credentials', {
             redirect: false,
-            email: e.target.email.value,
-            password: e.target.password.value,
+            email: data.email,
+            password: data.password,
         });
         if (result?.error) {
             setError("Invalid email or password");
@@ -52,31 +44,82 @@ function LoginPage() {
 
     return (
         <div className="flex flex-col items-center text-lg text-black py-36 bg-teal-300">
-            <div className="flex flex-col px-14 pt-14 pb-9 bg-white rounded-3xl w-[550px]">
+            <div className="flex flex-col px-14 pt-14 pb-9 bg-white rounded-3xl w-[550px] shadow-lg">
                 <Image
                     src={logo}
                     alt="Batch Record System Logo"
                     width={302}
-                    height={89} // Adjust this based on your logo's aspect ratio
+                    height={89}
                     className="object-contain self-center"
                 />
                 <h1 className="self-center mb-5 text-1xl text-gray-500">
                     BATCH RECORD SYSTEM
                 </h1>
                 <p className="self-center mb-5 text-1xl text-gray-500">
-                admin@DOGE.com/SMIpassword
+                    admin@DOGE.com/SMIpassword
                 </p>
-                {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-                <form onSubmit={handleSubmit}>
-                    <InputField label="Email" id="email" type="email" required />
-                    <InputField label="Password" id="password" type="password" required />
-                    <Button text="LOGIN" type="submit" />
+                {errors.root?.serverError && (
+                    <Alert variant="destructive" className="mb-4">
+                        <AlertDescription>
+                            {errors.root.serverError.message}
+                        </AlertDescription>
+                    </Alert>
+                )}
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            {...register("email", {
+                                required: "Email is required",
+                                pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: "Invalid email address"
+                                }
+                            })}
+                            className={errors.email ? "border-red-500" : ""}
+                        />
+                        {errors.email && (
+                            <p className="text-sm text-red-500">{errors.email.message}</p>
+                        )}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            {...register("password", {
+                                required: "Password is required",
+                                minLength: {
+                                    value: 6,
+                                    message: "Password must be at least 6 characters"
+                                }
+                            })}
+                            className={errors.password ? "border-red-500" : ""}
+                        />
+                        {errors.password && (
+                            <p className="text-sm text-red-500">{errors.password.message}</p>
+                        )}
+                    </div>
+                    <Button type="submit" className="w-full">
+                        LOGIN
+                    </Button>
                 </form>
-                <NextLink href="/forgot-password" className="self-end mt-2.5 text-gray-500 text-opacity-60">
+                <NextLink 
+                    href="/forgot-password" 
+                    className="self-end mt-2.5 text-gray-500 hover:text-gray-700 transition-colors"
+                >
                     Forgot Password?
                 </NextLink>
-                <p className="self-center mt-28 text-center text-gray-500 text-opacity-60 max-md:mt-10">
-                    Need an account? <Link href="/signup" text="SIGN UP" underline />
+                <p className="self-center mt-28 text-center text-gray-500 max-md:mt-10">
+                    Need an account?{" "}
+                    <NextLink 
+                        href="/signup" 
+                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                        SIGN UP
+                    </NextLink>
                 </p>
             </div>
         </div>
