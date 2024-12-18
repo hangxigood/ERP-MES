@@ -43,19 +43,19 @@ function LoginPage() {
     }
 
     return (
-        <div className="flex flex-col items-center text-lg text-black py-36 bg-teal-300">
-            <div className="flex flex-col px-14 pt-14 pb-9 bg-white rounded-3xl w-[550px] shadow-lg">
+        <div className="min-h-screen flex items-center justify-center bg-teal-300">
+            <div className="w-[550px] bg-white rounded-3xl shadow-lg p-14">
                 <Image
                     src={logo}
                     alt="Batch Record System Logo"
                     width={302}
                     height={89}
-                    className="object-contain self-center"
+                    className="object-contain mx-auto"
                 />
-                <h1 className="self-center mb-5 text-1xl text-gray-500">
+                <h1 className="text-center mb-5 text-1xl text-gray-500">
                     BATCH RECORD SYSTEM
                 </h1>
-                <p className="self-center mb-5 text-1xl text-gray-500">
+                <p className="text-center mb-5 text-1xl text-gray-500">
                     admin@DOGE.com/SMIpassword
                 </p>
                 {errors.root?.serverError && (
@@ -108,11 +108,11 @@ function LoginPage() {
                 </form>
                 <NextLink 
                     href="/forgot-password" 
-                    className="self-end mt-2.5 text-gray-500 hover:text-gray-700 transition-colors"
+                    className="block text-right mt-2.5 text-gray-500 hover:text-gray-700 transition-colors"
                 >
                     Forgot Password?
                 </NextLink>
-                <p className="self-center mt-28 text-center text-gray-500 max-md:mt-10">
+                <p className="text-center mt-10 text-gray-500">
                     Need an account?{" "}
                     <NextLink 
                         href="/signup" 
