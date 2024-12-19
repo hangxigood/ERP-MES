@@ -34,17 +34,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
-import { Pencil, Save, X } from "lucide-react";
+import { Pencil, Save, X, Search } from "lucide-react";
 
 export default function EditUser() {
   const { data: session, status } = useSession();
   const { toast } = useToast();
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchFilter, setSearchFilter] = useState('all');
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
@@ -52,6 +55,36 @@ export default function EditUser() {
     if (status === "loading") return;
     fetchUsers();
   }, [status]);
+
+  useEffect(() => {
+    filterUsers();
+  }, [searchQuery, searchFilter, users]);
+
+  const filterUsers = () => {
+    if (!searchQuery) {
+      setFilteredUsers(users);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = users.filter(user => {
+      switch (searchFilter) {
+        case 'name':
+          return user.name.toLowerCase().includes(query);
+        case 'email':
+          return user.email.toLowerCase().includes(query);
+        case 'role':
+          return user.role.toLowerCase().includes(query);
+        default:
+          return (
+            user.name.toLowerCase().includes(query) ||
+            user.email.toLowerCase().includes(query) ||
+            user.role.toLowerCase().includes(query)
+          );
+      }
+    });
+    setFilteredUsers(filtered);
+  };
 
   const fetchUsers = async () => {
     try {
@@ -178,6 +211,31 @@ export default function EditUser() {
               </Alert>
             )}
 
+            <div className="flex gap-4 mb-6">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search users..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+              <Select value={searchFilter} onValueChange={setSearchFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Search by..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Fields</SelectItem>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="role">Role</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <Table>
               <TableHeader>
                 <TableRow>
@@ -188,7 +246,7 @@ export default function EditUser() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
                       {editingUser?.id === user.id ? (
@@ -270,10 +328,10 @@ export default function EditUser() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {users.length === 0 && (
+                {filteredUsers.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                      No users found
+                      {users.length === 0 ? 'No users found' : 'No matching users found'}
                     </TableCell>
                   </TableRow>
                 )}
