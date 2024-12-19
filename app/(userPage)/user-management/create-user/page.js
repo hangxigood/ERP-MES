@@ -2,32 +2,55 @@
 
 import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useForm } from "react-hook-form";
 import Header from '../../../../components/Header';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function CreateUser() {
   const { data: session, status } = useSession();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    // password: '',
-    role: 'LABELING',
+  const { toast } = useToast();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues: {
+      name: '',
+      email: '',
+      role: 'LABELING',
+    }
   });
-  const [message, setMessage] = useState('');
 
   if (status === "loading") {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-lg">Loading...</div>
+      </div>
+    );
   }
 
   if (!session || session.user.role !== 'ADMIN') {
-    return <div className="text-red-500 font-bold text-center mt-4">Access Denied: Only admins can create users</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Alert variant="destructive" className="max-w-lg">
+          <AlertDescription>
+            Access Denied: Only admins can create users
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
   }
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     try {
       const response = await fetch('/api/create-user', {
         method: 'POST',
@@ -39,98 +62,104 @@ export default function CreateUser() {
         }),
       });
       const data = await response.json();
+      
       if (response.ok) {
-        setMessage('User created successfully. A password setup link has been sent to the email.');
-        setFormData({ name: '', email: '', password: '', role: 'LABELING' });
+        toast({
+          title: "Success",
+          description: "User created successfully. A password setup link has been sent to the email.",
+          variant: "success",
+        });
+        reset();
       } else {
-        setMessage(data.message || 'Error creating user');
+        toast({
+          title: "Error",
+          description: data.message || 'Error creating user',
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      setMessage('Error creating user');
+      toast({
+        title: "Error",
+        description: "Failed to create user. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    <div className="flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header title="CREATE USER" />
-      <div className="self-center w-full max-w-md mt-8">
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-              Name
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="name"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-              Email
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="email"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          {/* <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-              Password
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div> */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
-              Role
-            </label>
-            <select
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <option value="ADMIN">Admin</option>
-              <option value="PRODUCTION">Production</option>
-              <option value="TEAM_LEADER">Team Leader</option>
-              <option value="QA">QA</option>
-              <option value="LABELING">Labeling</option>
-            </select>
-          </div>
-          <div className="flex items-center justify-between">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="submit"
-            >
-              Create User
-            </button>
-          </div>
-        </form>
-        {message && (
-          <p className={`text-center ${message.includes('Error') ? 'text-red-500' : 'text-green-500'}`}>
-            {message}
-          </p>
-        )}
+      <div className="flex-1 container mx-auto px-4 py-8">
+        <Card className="max-w-lg mx-auto">
+          <CardHeader>
+            <CardTitle>Create New User</CardTitle>
+            <CardDescription>
+              Add a new user to the system. They will receive an email to set up their password.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  {...register("name", { required: "Name is required" })}
+                  placeholder="Enter user's full name"
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  {...register("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Invalid email address"
+                    }
+                  })}
+                  placeholder="Enter user's email"
+                />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  {...register("role", { required: "Role is required" })}
+                  defaultValue="LABELING"
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ADMIN">Admin</SelectItem>
+                    <SelectItem value="PRODUCTION">Production</SelectItem>
+                    <SelectItem value="TEAM_LEADER">Team Leader</SelectItem>
+                    <SelectItem value="QA">QA</SelectItem>
+                    <SelectItem value="LABELING">Labeling</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.role && (
+                  <p className="text-sm text-destructive">{errors.role.message}</p>
+                )}
+              </div>
+
+              <Button type="submit" className="w-full">
+                Create User
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
+      <Toaster />
     </div>
   );
 }
