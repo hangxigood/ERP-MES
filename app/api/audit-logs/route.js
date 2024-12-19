@@ -17,8 +17,8 @@ export async function GET(request) {
 
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 50;
+    const page = Math.max(1, parseInt(searchParams.get('page')) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit')) || 50));
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
     const userId = searchParams.get('userId');
@@ -40,8 +40,17 @@ export async function GET(request) {
     }
 
     // User filters
-    if (userId) query['metadata.userId'] = new mongoose.Types.ObjectId(userId);
-    if (userRole) query['metadata.userRole'] = userRole;
+    if (userId && userId !== 'ALL_USERS') {
+      try {
+        query['metadata.userId'] = new mongoose.Types.ObjectId(userId);
+      } catch (error) {
+        // If conversion fails, log the error and skip user filtering
+        console.warn(`Invalid user ID: ${userId}`);
+      }
+    }
+    if (userRole && userRole !== 'ALL_ROLES') {
+      query['metadata.userRole'] = userRole;
+    }
 
     // Execute query with pagination and populate user information
     const [histories, total] = await Promise.all([

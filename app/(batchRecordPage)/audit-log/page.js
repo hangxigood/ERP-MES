@@ -2,12 +2,13 @@
 
 import React from 'react';
 import AuditLogViewer from '../../../components/AuditLogViewer';
+import Header from '../../../components/Header';
 
 export default function AuditLogPage() {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6 text-gray-900">Audit Log</h1>
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header title="AUDIT LOG" />
+      <div className="flex-1 container mx-auto px-4 py-8">
         <AuditLogViewer />
       </div>
     </div>
