@@ -1,39 +1,94 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useForm } from "react-hook-form";
 import Header from '../../../../components/Header';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+import { Toaster } from "@/components/ui/toaster";
+import { Pencil, Save, X } from "lucide-react";
 
 export default function EditUser() {
   const { data: session, status } = useSession();
-  const [userEmail, setUserEmail] = useState('');
-  const [fieldsToUpdate, setFieldsToUpdate] = useState([]);
-  const [updatedValues, setUpdatedValues] = useState({});
+  const { toast } = useToast();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState(null);
+  const [showDialog, setShowDialog] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [error, setError] = useState('');
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
-  if (!session || session.user.role !== 'ADMIN') {
-    return <div className="text-red-500 font-bold text-center mt-4">Access Denied: Only admins can edit users</div>;
-  }
+  useEffect(() => {
+    if (status === "loading") return;
+    fetchUsers();
+  }, [status]);
 
-  const handleFieldSelection = (field) => {
-    setFieldsToUpdate(prev => 
-      prev.includes(field) ? prev.filter(f => f !== field) : [...prev, field]
-    );
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch users');
+      }
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      setError(error.message || 'Failed to load users. Please try again.');
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to load users. Please try again.',
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleValueChange = (field, value) => {
-    setUpdatedValues(prev => ({ ...prev, [field]: value }));
+  const handleEdit = (user) => {
+    setEditingUser({
+      ...user,
+      newName: user.name,
+      newEmail: user.email,
+      newRole: user.role
+    });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setShowConfirmation(true);
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+  };
+
+  const handleSave = async () => {
+    setShowDialog(true);
   };
 
   const confirmUpdate = async () => {
@@ -42,188 +97,222 @@ export default function EditUser() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userEmail,
-          updatedFields: fieldsToUpdate.reduce((acc, field) => {
-            acc[field] = updatedValues[field];
-            return acc;
-          }, {}),
+          userEmail: editingUser.email,
+          updatedFields: {
+            name: editingUser.newName,
+            email: editingUser.newEmail,
+            role: editingUser.newRole
+          },
           adminPassword,
           adminId: session.user.id
         }),
       });
+      
       const data = await response.json();
+      
       if (response.ok) {
-        setMessage('User updated successfully');
-        // Reset form
-        setUserEmail('');
-        setFieldsToUpdate([]);
-        setUpdatedValues({});
-        setAdminPassword('');
-        // Reset checkboxes
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-          checkbox.checked = false;
+        toast({
+          title: "Success",
+          description: "User updated successfully",
+          variant: "success",
         });
-        // Reset select fields
-        const selects = document.querySelectorAll('select');
-        selects.forEach(select => {
-          select.value = '';
-        });
+        setUsers(users.map(user => 
+          user.id === editingUser.id 
+            ? {
+                ...user,
+                name: editingUser.newName,
+                email: editingUser.newEmail,
+                role: editingUser.newRole
+              }
+            : user
+        ));
+        setEditingUser(null);
       } else {
-        setMessage(data.message || 'Error updating user');
+        toast({
+          title: "Error",
+          description: data.message || 'Error updating user',
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      setMessage('Error updating user');
+      toast({
+        title: "Error",
+        description: "Failed to update user. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setShowDialog(false);
+      setAdminPassword('');
     }
-    setShowConfirmation(false);
   };
 
+  if (status === "loading" || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!session || session.user.role !== 'ADMIN') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Alert variant="destructive" className="max-w-lg">
+          <AlertDescription>
+            Access Denied: Only admins can edit users
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header title="EDIT USER" />
-      <div className="self-center w-full max-w-md mt-8">
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-              User&apos;s Email
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="email"
-              type="email"
-              value={userEmail}
-              onChange={(e) => setUserEmail(e.target.value)}
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Fields to Update
-            </label>
-            <div>
-              <label className="inline-flex items-center mr-4">
-                <input type="checkbox" className="form-checkbox" onChange={() => handleFieldSelection('email')} />
-                <span className="ml-2">Email</span>
-              </label>
-              <label className="inline-flex items-center mr-4">
-                <input type="checkbox" className="form-checkbox" onChange={() => handleFieldSelection('name')} />
-                <span className="ml-2">Name</span>
-              </label>
-              <label className="inline-flex items-center">
-                <input type="checkbox" className="form-checkbox" onChange={() => handleFieldSelection('role')} />
-                <span className="ml-2">Role</span>
-              </label>
-            </div>
-          </div>
+      <div className="flex-1 container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-6">
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-          {fieldsToUpdate.includes('email') && (
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newEmail">
-                New Email
-              </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="newEmail"
-                type="email"
-                onChange={(e) => handleValueChange('email', e.target.value)}
-                required
-              />
-            </div>
-          )}
-
-          {fieldsToUpdate.includes('name') && (
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-                New Name
-              </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="name"
-                type="text"
-                onChange={(e) => handleValueChange('name', e.target.value)}
-                required
-              />
-            </div>
-          )}
-
-          {fieldsToUpdate.includes('role') && (
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
-                New Role
-              </label>
-              <select
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="role"
-                onChange={(e) => handleValueChange('role', e.target.value)}
-                required
-              >
-                <option value="">Select a role</option>
-                <option value="ADMIN">Admin</option>
-                <option value="PRODUCTION">Production</option>
-                <option value="TEAM_LEADER">Team Leader</option>
-                <option value="QA">QA</option>
-                <option value="LABELING">Labeling</option>
-              </select>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="submit"
-            >
-              Update User
-            </button>
-          </div>
-        </form>
-        {message && (
-          <p className={`text-center ${message.includes('Error') ? 'text-red-500' : 'text-green-500'}`}>
-            {message}
-          </p>
-        )}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      {editingUser?.id === user.id ? (
+                        <Input
+                          value={editingUser.newName}
+                          onChange={(e) => setEditingUser({
+                            ...editingUser,
+                            newName: e.target.value
+                          })}
+                        />
+                      ) : (
+                        user.name
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editingUser?.id === user.id ? (
+                        <Input
+                          value={editingUser.newEmail}
+                          onChange={(e) => setEditingUser({
+                            ...editingUser,
+                            newEmail: e.target.value
+                          })}
+                        />
+                      ) : (
+                        user.email
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editingUser?.id === user.id ? (
+                        <Select
+                          value={editingUser.newRole}
+                          onValueChange={(value) => setEditingUser({
+                            ...editingUser,
+                            newRole: value
+                          })}
+                        >
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select a role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ADMIN">Admin</SelectItem>
+                            <SelectItem value="PRODUCTION">Production</SelectItem>
+                            <SelectItem value="TEAM_LEADER">Team Leader</SelectItem>
+                            <SelectItem value="QA">QA</SelectItem>
+                            <SelectItem value="LABELING">Labeling</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge variant="outline">{user.role}</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editingUser?.id === user.id ? (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleSave}
+                          >
+                            <Save className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleCancelEdit}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEdit(user)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {users.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      No users found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
 
-      {showConfirmation && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-          <div className="bg-white p-5 rounded-lg shadow-xl">
-            <h2 className="text-xl font-bold mb-4">Confirm Update</h2>
-            <p>You are about to update the following fields for {userEmail}:</p>
-            <ul className="list-disc list-inside mb-4">
-              {fieldsToUpdate.map(field => (
-                <li key={field}>{field}: {updatedValues[field]}</li>
-              ))}
-            </ul>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirmPassword">
-                Enter your password to confirm:
-              </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="confirmPassword"
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Update</DialogTitle>
+            <DialogDescription>
+              You are about to update user information. Please enter your password to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Input
                 type="password"
+                placeholder="Enter your password"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                required
               />
             </div>
-            <div className="flex justify-end">
-              <button
-                className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded mr-2"
-                onClick={() => setShowConfirmation(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                onClick={confirmUpdate}
-              >
-                Confirm Update
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmUpdate} disabled={!adminPassword}>
+              Confirm Update
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Toaster />
     </div>
   );
 }
